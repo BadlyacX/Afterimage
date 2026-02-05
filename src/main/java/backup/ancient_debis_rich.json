@@ -1,0 +1,15 @@
+{
+  "feature": "afterimage:ancient_debris_ore",
+  "placement": [
+    { "type": "minecraft:count", "count": 4 },
+    {
+      "type": "minecraft:height_range",
+      "height": {
+        "type": "minecraft:uniform",
+        "min_inclusive": { "absolute": 10 },
+        "max_inclusive": { "absolute": 24 }
+      }
+    },
+    { "type": "minecraft:biome" }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CEC",
+    "GRA",
+    "CYC"
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:crying_obsidian"
+    },
+    "E": {
+      "item": "minecraft:end_crystal"
+    },
+    "G": {
+      "item": "minecraft:ghast_tear"
+    },
+    "R": {
+      "item": "minecraft:recovery_compass"
+    },
+    "A": {
+      "item": "minecraft:ancient_debris"
+    },
+    "Y":{
+      "item": "minecraft:ender_eye"
+    }
+  },
+  "result": {
+    "item": "afterimage:afterimage_anchor",
+    "count": 1
+  }
+}

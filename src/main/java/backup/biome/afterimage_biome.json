@@ -1,0 +1,35 @@
+{
+  "has_precipitation": false,
+  "temperature": 0.2,
+  "downfall": 0.0,
+  "effects": {
+    "sky_color": 2105376,
+    "fog_color": 1118481,
+    "water_color": 0,
+    "water_fog_color": 0,
+    "grass_color": 2236962,
+    "foliage_color": 2236962,
+    "ambient_sound": "minecraft:ambient.cave"
+  },
+  "spawners": {},
+  "spawn_costs": {},
+  "carvers": {},
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "afterimage:coal_rich",
+      "afterimage:diamond_rich",
+      "afterimage:emerald_rich",
+      "afterimage:gold_rich",
+      "afterimage:iron_rich",
+      "afterimage:lapis_rich",
+      "afterimage:redstone_rich"
+
+    ]
+  ]
+}

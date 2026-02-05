@@ -14,12 +14,18 @@ public class AfterimageClient {
     private static final ResourceLocation EFFECT =
             ResourceLocation.fromNamespaceAndPath(AfterimageMod.MOD_ID, "shaders/post/afterimage.json");
 
-    private static float grayStrength = 1.0F;
-    private static float vignetteStrength = 0.6F;
-    private static float darkness = 0.15F;
-
     private static boolean enabled = false;
-    private static boolean testApplied = false;
+    private static boolean clientInAfterimage = false;
+
+//    private static float grayStrength = 1.0F;
+//    private static float vignetteStrength = 0.6F;
+//    private static float darkness = 0.15F;
+
+    //    public static void setEffectStrength(float gray, float vignette, float dark) {
+//        grayStrength = gray;
+//        vignetteStrength = vignette;
+//        darkness = dark;
+//    }
 
     public static void enableEffect() {
         if (enabled) return;
@@ -28,7 +34,9 @@ public class AfterimageClient {
         if (mc.player == null) return;
 
         enabled = true;
-        mc.gameRenderer.loadEffect(EFFECT);
+        mc.execute(() -> {
+            mc.gameRenderer.loadEffect(EFFECT);
+        });
     }
 
     public static void disableEffect() {
@@ -36,17 +44,23 @@ public class AfterimageClient {
 
         Minecraft mc = Minecraft.getInstance();
         enabled = false;
-        mc.gameRenderer.shutdownEffect();
+        mc.execute(mc.gameRenderer::shutdownEffect);
     }
 
     public static boolean isEnabled() {
         return enabled;
     }
 
-    public static void setEffectStrength(float gray, float vignette, float dark) {
-        grayStrength = gray;
-        vignetteStrength = vignette;
-        darkness = dark;
+    public static void syncAfterimageState(boolean afterimage) {
+        if (clientInAfterimage == afterimage) return;
+
+        clientInAfterimage = afterimage;
+
+        if (afterimage) {
+            enableEffect();
+        } else {
+            disableEffect();
+        }
     }
 
     @SubscribeEvent
@@ -54,27 +68,8 @@ public class AfterimageClient {
         if (e.phase != TickEvent.Phase.END) return;
 
         Minecraft mc = Minecraft.getInstance();
-
-        if (mc.player == null) {
-            if (enabled) disableEffect();
-            testApplied = false;
-            return;
-        }
-
-        if (!testApplied) {
-            enableEffect();
-            testApplied = true;
+        if (mc.player == null && enabled) {
+            disableEffect();
         }
     }
-
-
-//    @SubscribeEvent
-//    public static void onClientTick(TickEvent.ClientTickEvent e) {
-//        if (e.phase != TickEvent.Phase.END) return;
-//
-//        Minecraft mc = Minecraft.getInstance();
-//        if (mc.player == null && enabled) {
-//            disableEffect();
-//        }
-//    }
 }
