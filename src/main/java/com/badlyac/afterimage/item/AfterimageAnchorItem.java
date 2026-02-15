@@ -1,6 +1,6 @@
 package com.badlyac.afterimage.item;
 
-import com.badlyac.afterimage.world.AfterimageTravelHandler;
+import com.badlyac.afterimage.handler.AfterimageTravelHandler;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -26,11 +26,11 @@ public class AfterimageAnchorItem extends Item {
     ) {
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
             if (!serverPlayer.getCooldowns().isOnCooldown(this)) {
-                System.out.println("ANCHOR USE CALLED");
-                AfterimageTravelHandler.tryToggle(serverPlayer);
+                AfterimageTravelHandler.toggle(serverPlayer);
                 serverPlayer.getCooldowns().addCooldown(this, COOLDOWN_TICKS);
             }
         }
+
         return InteractionResultHolder.success(player.getItemInHand(hand));
     }
 }
