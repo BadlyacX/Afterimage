@@ -2,9 +2,11 @@ package com.badlyac.afterimage.handler;
 
 import com.badlyac.afterimage.network.AfterimageNetwork;
 import com.badlyac.afterimage.network.AfterimageStateSyncPacket;
+import com.badlyac.afterimage.registry.ModDimensions;
 import com.badlyac.afterimage.state.AfterimageState;
 import com.badlyac.afterimage.util.AfterimageTeleportUtil;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.network.PacketDistributor;
 
 public final class AfterimageTravelHandler {
@@ -12,6 +14,11 @@ public final class AfterimageTravelHandler {
     public static void toggle(ServerPlayer player) {
 
         boolean currentlyInAfterimage = AfterimageState.isInAfterimage(player);
+
+        if (player.level().dimension() != Level.OVERWORLD
+                && player.level().dimension() != ModDimensions.AFTERIMAGE_LEVEL) {
+            return;
+        }
 
         if (currentlyInAfterimage) {
             AfterimageTeleportUtil.teleportToOverworld(player);
@@ -22,15 +29,6 @@ public final class AfterimageTravelHandler {
             }
         }
 
-        sync(player);
-    }
-
-    public static void sync(ServerPlayer player) {
-        AfterimageNetwork.CHANNEL.send(
-                PacketDistributor.PLAYER.with(() -> player),
-                new AfterimageStateSyncPacket(
-                        AfterimageState.isInAfterimage(player)
-                )
-        );
+        AfterimageStateSyncPacket.sync(player);
     }
 }

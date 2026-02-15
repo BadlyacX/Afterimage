@@ -6,7 +6,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.AABB;
 
 public final class AfterimageTeleportUtil {
 
@@ -30,10 +30,15 @@ public final class AfterimageTeleportUtil {
 
     private static void teleport(ServerPlayer player, ServerLevel target) {
 
-        int x = player.blockPosition().getX();
-        int z = player.blockPosition().getZ();
+        BlockPos original = player.blockPosition();
 
-        BlockPos safePos = findSafePosition(target, x, z);
+        BlockPos safePos = findSafeY(target, original);
+
+        System.out.println("[AFTERIMAGE] Dimension: " + player.level().dimension());
+        System.out.println("[AFTERIMAGE] Location: " + player.blockPosition());
+        System.out.println("[AFTERIMAGE] Original: " + original);
+        System.out.println("[AFTERIMAGE] SafePos: " + safePos);
+        System.out.println("[AFTERIMAGE] Spawn: " + target.getSharedSpawnPos());
 
         if (safePos == null) {
             safePos = target.getSharedSpawnPos();
@@ -47,33 +52,55 @@ public final class AfterimageTeleportUtil {
                 player.getYRot(),
                 player.getXRot()
         );
+
+        player.resetFallDistance();
     }
 
-    private static BlockPos findSafePosition(ServerLevel level, int x, int z) {
+    private static BlockPos findSafeY(ServerLevel level, BlockPos original) {
 
-        int topY = level.getHeight(
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                x,
-                z
-        );
+        int x = original.getX();
+        int z = original.getZ();
+        int startY = original.getY();
 
-        for (int y = topY; y >= level.getMinBuildHeight(); y--) {
+        int maxOffset = 32;
 
-            BlockPos pos = new BlockPos(x, y, z);
-            BlockState feet = level.getBlockState(pos);
-            BlockState head = level.getBlockState(pos.above());
-            BlockState below = level.getBlockState(pos.below());
+        for (int offset = 0; offset <= maxOffset; offset++) {
 
-            if (!feet.isAir()) continue;
-            if (!head.isAir()) continue;
-            if (!below.isSolid()) continue;
+            int upY = startY + offset;
+            if (upY < level.getMaxBuildHeight() - 2) {
+                BlockPos pos = new BlockPos(x, upY, z);
+                if (isSafe(level, pos)) return pos;
+            }
 
-            if (below.getFluidState().isSource()) continue;
-
-            return pos;
+            int downY = startY - offset;
+            if (downY > level.getMinBuildHeight() + 1) {
+                BlockPos pos = new BlockPos(x, downY, z);
+                if (isSafe(level, pos)) return pos;
+            }
         }
 
         return null;
+    }
+
+    private static boolean isSafe(ServerLevel level, BlockPos pos) {
+
+        AABB playerBox = new AABB(
+                pos.getX() + 0.001,
+                pos.getY(),
+                pos.getZ() + 0.001,
+                pos.getX() + 0.999,
+                pos.getY() + 1.8,
+                pos.getZ() + 0.999
+        );
+
+        if (!level.noCollision(playerBox)) {
+            return false;
+        }
+
+        BlockPos below = pos.below();
+        BlockState belowState = level.getBlockState(below);
+
+        return belowState.isCollisionShapeFullBlock(level, below);
     }
 
 }
