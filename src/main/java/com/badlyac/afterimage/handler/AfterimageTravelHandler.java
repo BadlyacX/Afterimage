@@ -1,13 +1,11 @@
 package com.badlyac.afterimage.handler;
 
-import com.badlyac.afterimage.network.AfterimageNetwork;
 import com.badlyac.afterimage.network.AfterimageStateSyncPacket;
 import com.badlyac.afterimage.registry.ModDimensions;
 import com.badlyac.afterimage.state.AfterimageState;
 import com.badlyac.afterimage.util.AfterimageTeleportUtil;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.PacketDistributor;
 
 public final class AfterimageTravelHandler {
 
