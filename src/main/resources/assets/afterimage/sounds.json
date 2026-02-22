@@ -1,0 +1,18 @@
+{
+  "enter_sound": {
+    "sounds": [
+      {
+        "name": "afterimage:enter_sound",
+        "stream": false
+      }
+    ]
+  },
+  "exit_sound": {
+    "sounds": [
+      {
+        "name": "afterimage:exit_sound",
+        "stream": false
+      }
+    ]
+  }
+}

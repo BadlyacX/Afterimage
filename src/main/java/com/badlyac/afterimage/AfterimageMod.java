@@ -3,6 +3,7 @@ package com.badlyac.afterimage;
 import com.badlyac.afterimage.network.AfterimageNetwork;
 import com.badlyac.afterimage.registry.ModCreativeTabs;
 import com.badlyac.afterimage.registry.ModItems;
+import com.badlyac.afterimage.registry.ModSounds;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -21,6 +22,6 @@ public class AfterimageMod {
 
         ModItems.ITEMS.register(bus);
         ModCreativeTabs.TABS.register(bus);
+        ModSounds.SOUND_EVENTS.register(bus);
     }
-
 }

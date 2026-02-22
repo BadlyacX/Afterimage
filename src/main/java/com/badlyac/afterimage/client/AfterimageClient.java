@@ -2,6 +2,7 @@ package com.badlyac.afterimage.client;
 
 import com.badlyac.afterimage.AfterimageMod;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.PostChain;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
@@ -68,8 +69,17 @@ public class AfterimageClient {
         if (e.phase != TickEvent.Phase.END) return;
 
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null && enabled) {
-            disableEffect();
+
+        if (mc.player == null) {
+            if (enabled) disableEffect();
+            return;
+        }
+
+        if (enabled) {
+            PostChain effect = mc.gameRenderer.currentEffect();
+            if (effect == null) {
+                mc.gameRenderer.loadEffect(EFFECT);
+            }
         }
     }
 }
