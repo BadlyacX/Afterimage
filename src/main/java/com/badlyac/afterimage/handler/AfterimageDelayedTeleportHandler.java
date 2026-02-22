@@ -2,8 +2,12 @@ package com.badlyac.afterimage.handler;
 
 import com.badlyac.afterimage.AfterimageMod;
 import com.badlyac.afterimage.registry.ModSounds;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -18,14 +22,17 @@ import java.util.concurrent.ConcurrentHashMap;
 @Mod.EventBusSubscriber(modid = AfterimageMod.MOD_ID)
 public final class AfterimageDelayedTeleportHandler {
 
-    private static final int ENTER_DELAY_TICKS = 40; // 3 sec
-    private static final int EXIT_DELAY_TICKS = 40;  // 4 sec
+    private static final int ENTER_DELAY_TICKS = 40;
+    private static final int EXIT_DELAY_TICKS = 40;
+
+    private static final int DARKNESS_TICKS = 100;
+    private static final int BURST_LAST_TICKS = 5;
 
     private static final Map<UUID, PendingTeleport> PENDING = new ConcurrentHashMap<>();
     private static final Map<UUID, LockedPlayer> LOCKED = new ConcurrentHashMap<>();
 
     private record LockedPlayer(double x, double y, double z, float yaw, float pitch) {}
-    private record PendingTeleport(int ticksLeft, Runnable action) {}
+    private record PendingTeleport(int ticksLeft, int totalTicks, Runnable action) {}
 
     public static void playEnterThenTeleport(ServerPlayer player, Runnable action) {
         start(player, ENTER_DELAY_TICKS, ModSounds.ENTER_SOUND.get(), action);
@@ -48,8 +55,10 @@ public final class AfterimageDelayedTeleportHandler {
                 1.0F
         );
 
+        player.addEffect(new MobEffectInstance(MobEffects.DARKNESS, DARKNESS_TICKS, 0, false, false, true));
+
         freezePlayer(player);
-        PENDING.put(id, new PendingTeleport(delay, action));
+        PENDING.put(id, new PendingTeleport(delay, delay, action));
     }
 
     @SubscribeEvent
@@ -57,20 +66,16 @@ public final class AfterimageDelayedTeleportHandler {
         if (event.phase != TickEvent.Phase.END) return;
 
         for (Map.Entry<UUID, LockedPlayer> entry : LOCKED.entrySet()) {
-
             ServerPlayer player = event.getServer().getPlayerList().getPlayer(entry.getKey());
             if (player == null) continue;
 
             LockedPlayer lock = entry.getValue();
-
-            spawnInwardParticles(player);
 
             player.teleportTo(lock.x, lock.y, lock.z);
             player.setYRot(lock.yaw);
             player.setXRot(lock.pitch);
             player.setDeltaMovement(0, 0, 0);
             player.hurtMarked = true;
-
         }
 
         Iterator<Map.Entry<UUID, PendingTeleport>> it = PENDING.entrySet().iterator();
@@ -80,12 +85,20 @@ public final class AfterimageDelayedTeleportHandler {
             UUID id = entry.getKey();
             PendingTeleport pending = entry.getValue();
 
+            ServerPlayer player = event.getServer().getPlayerList().getPlayer(id);
+            if (player != null) {
+                spawnScaledInwardParticles(player, pending.ticksLeft, pending.totalTicks);
+
+                if (pending.ticksLeft <= BURST_LAST_TICKS) {
+                    spawnBurstParticles(player, pending.ticksLeft);
+                }
+            }
+
             int remaining = pending.ticksLeft - 1;
 
             if (remaining <= 0) {
                 it.remove();
 
-                ServerPlayer player = event.getServer().getPlayerList().getPlayer(id);
                 if (player != null) {
                     unfreezePlayer(player);
                     try {
@@ -93,9 +106,8 @@ public final class AfterimageDelayedTeleportHandler {
                     } catch (Throwable ignored) {
                     }
                 }
-
             } else {
-                entry.setValue(new PendingTeleport(remaining, pending.action));
+                entry.setValue(new PendingTeleport(remaining, pending.totalTicks, pending.action));
             }
         }
     }
@@ -134,36 +146,63 @@ public final class AfterimageDelayedTeleportHandler {
         LOCKED.remove(player.getUUID());
     }
 
-    private static void spawnInwardParticles(ServerPlayer player) {
-
-        if (!(player.level() instanceof net.minecraft.server.level.ServerLevel level)) return;
+    private static void spawnScaledInwardParticles(ServerPlayer player, int ticksLeft, int totalTicks) {
+        if (!(player.level() instanceof ServerLevel level)) return;
 
         double px = player.getX();
         double py = player.getY() + 1.0;
         double pz = player.getZ();
 
-        for (int i = 0; i < 8; i++) {
+        double progress = 1.0 - (ticksLeft / (double) totalTicks);
+        int count = 2 + (int) Math.floor(progress * 14.0);
+        double radius = 3.0 - (progress * 2.2);
 
-            double radius = 2.5;
-
-            double angle = level.random.nextDouble() * Math.PI * 2;
-            double height = level.random.nextDouble() * 2 - 1;
+        for (int i = 0; i < count; i++) {
+            double angle = level.random.nextDouble() * Math.PI * 2.0;
+            double height = (level.random.nextDouble() * 2.0) - 1.0;
 
             double x = px + Math.cos(angle) * radius;
             double y = py + height;
             double z = pz + Math.sin(angle) * radius;
 
-            double dx = (px - x) * 0.2;
-            double dy = (py - y) * 0.2;
-            double dz = (pz - z) * 0.2;
+            double dx = (px - x) * (0.18 + progress * 0.22);
+            double dy = (py - y) * (0.18 + progress * 0.22);
+            double dz = (pz - z) * (0.18 + progress * 0.22);
 
             level.sendParticles(
-                    net.minecraft.core.particles.ParticleTypes.PORTAL,
+                    ParticleTypes.REVERSE_PORTAL,
                     x, y, z,
                     0,
                     dx, dy, dz,
-                    0.5
+                    0.45
             );
         }
+    }
+
+    private static void spawnBurstParticles(ServerPlayer player, int ticksLeft) {
+        if (!(player.level() instanceof ServerLevel level)) return;
+
+        double px = player.getX();
+        double py = player.getY() + 1.0;
+        double pz = player.getZ();
+
+        int strength = (BURST_LAST_TICKS - ticksLeft) + 1;
+        int count = 40 + (strength * 25);
+
+        level.sendParticles(
+                ParticleTypes.PORTAL,
+                px, py, pz,
+                count,
+                0.6, 0.8, 0.6,
+                0.9
+        );
+
+        level.sendParticles(
+                ParticleTypes.SMOKE,
+                px, py, pz,
+                10 + strength * 6,
+                0.35, 0.45, 0.35,
+                0.02
+        );
     }
 }
