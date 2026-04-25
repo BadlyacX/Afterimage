@@ -1,10 +1,13 @@
 package com.badlyac.afterimage;
 
+import com.badlyac.afterimage.monster.palemimic.PaleMimicEntity;
 import com.badlyac.afterimage.network.AfterimageNetwork;
 import com.badlyac.afterimage.registry.ModCreativeTabs;
+import com.badlyac.afterimage.registry.ModEntities;
 import com.badlyac.afterimage.registry.ModItems;
 import com.badlyac.afterimage.registry.ModSounds;
 import com.mojang.logging.LogUtils;
+import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -23,5 +26,15 @@ public class AfterimageMod {
         ModItems.ITEMS.register(bus);
         ModCreativeTabs.TABS.register(bus);
         ModSounds.SOUND_EVENTS.register(bus);
+        ModEntities.ENTITIES.register(bus);
+
+        bus.addListener(this::onRegisterAttributes);
+    }
+
+    private void onRegisterAttributes(EntityAttributeCreationEvent event) {
+        event.put(
+                ModEntities.PALE_MIMIC.get(),
+                PaleMimicEntity.createAttributes().build()
+        );
     }
 }

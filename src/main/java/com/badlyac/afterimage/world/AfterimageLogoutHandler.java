@@ -1,7 +1,6 @@
 package com.badlyac.afterimage.world;
 
 import com.badlyac.afterimage.AfterimageMod;
-import com.badlyac.afterimage.handler.AfterimageTravelHandler;
 import com.badlyac.afterimage.network.AfterimageStateSyncPacket;
 import com.badlyac.afterimage.registry.ModDimensions;
 import com.badlyac.afterimage.state.AfterimageState;
