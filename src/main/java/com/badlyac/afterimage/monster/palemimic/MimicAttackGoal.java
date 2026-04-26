@@ -28,6 +28,7 @@ public class MimicAttackGoal extends Goal {
 
         ServerPlayer player = mimic.getTargetPlayer();
         if (player == null) return;
+        if (player.isCreative() || player.isSpectator()) return;
 
         double dist = mimic.distanceTo(player);
 
