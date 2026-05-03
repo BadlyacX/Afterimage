@@ -27,14 +27,5 @@ public class AfterimageMod {
         ModCreativeTabs.TABS.register(bus);
         ModSounds.SOUND_EVENTS.register(bus);
         ModEntities.ENTITIES.register(bus);
-
-        bus.addListener(this::onRegisterAttributes);
-    }
-
-    private void onRegisterAttributes(EntityAttributeCreationEvent event) {
-        event.put(
-                ModEntities.PALE_MIMIC.get(),
-                PaleMimicEntity.createAttributes().build()
-        );
     }
 }
