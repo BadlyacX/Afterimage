@@ -57,6 +57,9 @@ public class MimicFollowGoal extends Goal {
             mimic.getNavigation().stop();
             return;
         }
+//         else if (!mimic.getNavigation().isDone() && mimic.horizontalCollision) {
+//            mimic.getNavigation().stop();
+//        }
 
         if (recalcCooldown-- <= 0) {
             recalcCooldown = 5;
