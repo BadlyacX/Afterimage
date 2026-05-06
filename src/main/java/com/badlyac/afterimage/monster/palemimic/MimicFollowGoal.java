@@ -23,10 +23,10 @@ public class MimicFollowGoal extends Goal {
     private int stuckTicks = 0;
     private Vec3 lastPos = Vec3.ZERO;
 
-    public MimicFollowGoal(PaleMimicEntity mimic, PlayerPathRecorder recorder, int dTicks) {
+    public MimicFollowGoal(PaleMimicEntity mimic, PlayerPathRecorder recorder, int delayTicks) {
         this.mimic = mimic;
         this.recorder = recorder;
-        this.delayTicks = dTicks;
+        this.delayTicks = delayTicks;
 
         this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
