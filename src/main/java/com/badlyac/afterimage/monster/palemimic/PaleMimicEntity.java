@@ -9,6 +9,7 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -24,10 +25,11 @@ public class PaleMimicEntity extends Monster {
     private int warningTicks;
     private int aggressiveTicks;
 
-
     public enum State {
-        WATCHING,
-        TRIGGERED
+        FOLLOWING,
+        WARNING,
+        AGGRESSIVE,
+        DISAPPEARING
     }
 
     public PaleMimicEntity(EntityType<? extends Monster> type, Level level) {
@@ -99,7 +101,7 @@ public class PaleMimicEntity extends Monster {
     }
 
     @Override
-    public void playStepSound(BlockPos pos, BlockState state) {
+    public void playStepSound(@NotNull BlockPos pos, @NotNull BlockState state) {
         if (this.isAggressive()) {
             return;
         }

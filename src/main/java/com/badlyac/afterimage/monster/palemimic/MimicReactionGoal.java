@@ -4,7 +4,6 @@ import com.badlyac.afterimage.registry.ModSounds;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.ClipContext;
@@ -51,9 +50,11 @@ public class MimicReactionGoal extends Goal {
             return;
         }
 
-        mimic.setUnseenTicks(
-                mimic.getUnseenTicks() + 1
-        );
+        if (!mimic.isWarning() && !mimic.isTriggered()) {
+            mimic.setUnseenTicks(
+                    mimic.getUnseenTicks() + 1
+            );
+        }
 
         if (!mimic.isWarning()
                 && mimic.getUnseenTicks() >= 200) {
@@ -79,7 +80,6 @@ public class MimicReactionGoal extends Goal {
         }
     }
 
-
     private boolean playerSeesMimic(ServerPlayer player) {
         Vec3 look = player.getLookAngle().normalize();
 
@@ -104,6 +104,8 @@ public class MimicReactionGoal extends Goal {
     }
 
     private void startWarning() {
+        mimic.setUnseenTicks(0);
+
         mimic.setWarning(true);
         mimic.setWarningTicks(0);
     }

@@ -2,6 +2,7 @@ package com.badlyac.afterimage.world;
 
 import com.badlyac.afterimage.AfterimageMod;
 import com.badlyac.afterimage.registry.ModDimensions;
+import com.badlyac.afterimage.registry.ModEntities;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -24,9 +25,8 @@ public class AfterimageSpawnBlocker {
         EntityType<?> type = event.getEntity().getType();
 
         // white list
-//        if (type == ModEntities.AFTERIMAGE_MONSTER.get()) {
-//            return;
-//        }
+        if (type == ModEntities.PALE_MIMIC.get()) return;
+
 
         event.setSpawnCancelled(true);
     }
