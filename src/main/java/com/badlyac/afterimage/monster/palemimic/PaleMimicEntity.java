@@ -1,27 +1,33 @@
 package com.badlyac.afterimage.monster.palemimic;
 
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.UUID;
 
 public class PaleMimicEntity extends Monster {
 
-    private boolean triggered = false;
-    private boolean aggressive = false;
+    private boolean triggered;
+    private boolean aggressive;
     private boolean warning;
+
     private UUID targetPlayerId = null;
+
     private int unseenTicks;
     private int warningTicks;
     private int aggressiveTicks;
 
 
     public enum State {
-
+        WATCHING,
+        TRIGGERED
     }
 
     public PaleMimicEntity(EntityType<? extends Monster> type, Level level) {
@@ -90,6 +96,20 @@ public class PaleMimicEntity extends Monster {
 
     public void setTargetPlayer(ServerPlayer serverPlayer) {
         this.targetPlayerId = serverPlayer.getUUID();
+    }
 
+    @Override
+    public void playStepSound(BlockPos pos, BlockState state) {
+        if (this.isAggressive()) {
+            return;
+        }
+
+        SoundType soundType = state.getSoundType();
+
+        this.playSound(
+                soundType.getStepSound(),
+                0.15F,
+                0.85F
+        );
     }
 }

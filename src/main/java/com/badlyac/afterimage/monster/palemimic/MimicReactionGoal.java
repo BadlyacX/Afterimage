@@ -1,5 +1,6 @@
 package com.badlyac.afterimage.monster.palemimic;
 
+import com.badlyac.afterimage.registry.ModSounds;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -118,7 +119,7 @@ public class MimicReactionGoal extends Goal {
         level.playSound(
                 null,
                 mimic.blockPosition(),
-                SoundEvents.SOUL_ESCAPE,
+                ModSounds.WHISPERING.get(),
                 SoundSource.HOSTILE,
                 volume,
                 0.7F
@@ -157,7 +158,7 @@ public class MimicReactionGoal extends Goal {
         level.playSound(
                 null,
                 mimic.blockPosition(),
-                SoundEvents.SOUL_ESCAPE,
+                ModSounds.EXIT_SOUND.get(),
                 SoundSource.HOSTILE,
                 1F,
                 0.8F
@@ -167,6 +168,9 @@ public class MimicReactionGoal extends Goal {
     }
 
     private void startAggressive() {
+        mimic.setWarning(false);
+        mimic.setWarningTicks(0);
+
         mimic.setAggressive(true);
         mimic.setAggressiveTicks(0);
     }

@@ -14,5 +14,13 @@
         "stream": false
       }
     ]
+  },
+  "whispering": {
+    "sounds": [
+      {
+        "name": "afterimage:whispering",
+        "stream": false
+      }
+    ]
   }
 }

@@ -10,17 +10,41 @@ import net.minecraftforge.registries.RegistryObject;
 public final class ModSounds {
 
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS =
-            DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, AfterimageMod.MOD_ID);
+            DeferredRegister.create(
+                    ForgeRegistries.SOUND_EVENTS,
+                    AfterimageMod.MOD_ID
+            );
 
     public static final RegistryObject<SoundEvent> ENTER_SOUND =
-            SOUND_EVENTS.register("enter_sound",
+            SOUND_EVENTS.register(
+                    "enter_sound",
                     () -> SoundEvent.createVariableRangeEvent(
-                            ResourceLocation.fromNamespaceAndPath(AfterimageMod.MOD_ID, "enter_sound"))
+                            ResourceLocation.fromNamespaceAndPath(
+                                    AfterimageMod.MOD_ID,
+                                    "enter_sound"
+                            )
+                    )
             );
 
     public static final RegistryObject<SoundEvent> EXIT_SOUND =
-            SOUND_EVENTS.register("exit_sound",
+            SOUND_EVENTS.register(
+                    "exit_sound",
                     () -> SoundEvent.createVariableRangeEvent(
-                            ResourceLocation.fromNamespaceAndPath(AfterimageMod.MOD_ID, "exit_sound"))
+                            ResourceLocation.fromNamespaceAndPath(
+                                    AfterimageMod.MOD_ID,
+                                    "exit_sound"
+                            )
+                    )
+            );
+
+    public static final RegistryObject<SoundEvent> WHISPERING =
+            SOUND_EVENTS.register(
+                    "whispering",
+                    () -> SoundEvent.createVariableRangeEvent(
+                            ResourceLocation.fromNamespaceAndPath(
+                                    AfterimageMod.MOD_ID,
+                                    "whispering"
+                            )
+                    )
             );
 }
