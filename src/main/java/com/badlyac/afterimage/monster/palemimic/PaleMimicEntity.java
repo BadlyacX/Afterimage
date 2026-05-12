@@ -102,9 +102,7 @@ public class PaleMimicEntity extends Monster {
 
     @Override
     public void playStepSound(@NotNull BlockPos pos, @NotNull BlockState state) {
-        if (this.isAggressive()) {
-            return;
-        }
+        if (this.isAggressive()) return;
 
         SoundType soundType = state.getSoundType();
 
