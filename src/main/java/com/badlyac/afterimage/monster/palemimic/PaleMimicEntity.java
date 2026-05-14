@@ -10,14 +10,22 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
 
-public class PaleMimicEntity extends Monster {
+public class PaleMimicEntity extends Monster implements GeoEntity {
 
     private boolean triggered;
     private boolean aggressive;
     private boolean warning;
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     private UUID targetPlayerId = null;
 
@@ -111,5 +119,49 @@ public class PaleMimicEntity extends Monster {
                 0.15F,
                 0.85F
         );
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return cache;
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(
+                new AnimationController<>(
+                        this,
+                        "controller",
+                        0,
+                        state -> {
+                            if (state.isMoving()) {
+                                state.setAndContinue(
+                                        RawAnimation.begin().thenLoop("walk")
+                                );
+
+                                return PlayState.CONTINUE;
+                            }
+                            state.setAndContinue(
+                                    RawAnimation.begin().thenLoop("idle")
+                            );
+
+                            return PlayState.CONTINUE;
+                        }
+                ));
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+
+        if (!level().isClientSide
+                && this.getTargetPlayer() == null
+                && level() instanceof ServerLevel level) {
+            ServerPlayer nearest = (ServerPlayer) level.getNearestPlayer(this, 64);
+
+            if (nearest != null) {
+                this.setTarget(nearest);
+            }
+        }
     }
 }

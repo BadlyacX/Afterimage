@@ -32,12 +32,4 @@ public final class AfterimageState {
             AFTERIMAGE_PLAYERS.add(id);
         }
     }
-
-    public static void onLogout(Player player) {
-        AFTERIMAGE_PLAYERS.remove(player.getUUID());
-    }
-
-    public static void onDeath(Player player) {
-        AFTERIMAGE_PLAYERS.remove(player.getUUID());
-    }
 }

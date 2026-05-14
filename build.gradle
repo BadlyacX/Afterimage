@@ -3,7 +3,7 @@ plugins {
     id 'idea'
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
-   // id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+    // id 'org.parchmentmc.librarian.forgegradle' version '1.+'
 }
 
 version = mod_version
@@ -18,11 +18,12 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 minecraft {
-    // mappings channel: 'parchment', version: '2023.09.03-1.20.1'
+
     mappings channel: mapping_channel, version: mapping_version
     copyIdeResources = true
 
-    accessTransformer = file("src/main/resources/META-INF/accesstransformer.cfg")
+    // accessTransformer = file("src/main/resources/META-INF/accesstransformer.cfg")
+    //mappings channel: 'parchment', version: '2023.09.03-1.20.1'
 
     runs {
         // applies to all the run configs below
@@ -79,14 +80,10 @@ minecraft {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
-    // Put repositories for dependencies here
-    // ForgeGradle automatically adds the Forge maven and Maven Central for you
-
-    // If you have mod jar dependencies in ./libs, you can declare them as a repository like so.
-    // See https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:flat_dir_resolver
-    // flatDir {
-    //     dir 'libs'
-    // }
+    maven {
+        name = 'GeckoLib'
+        url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+    }
 }
 
 dependencies {
@@ -96,6 +93,8 @@ dependencies {
     // If the group id is "net.minecraft" and the artifact id is one of ["client", "server", "joined"],
     // then special handling is done to allow a setup of a vanilla dependency without the use of an external repository.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    implementation fg.deobf("software.bernie.geckolib:geckolib-forge-1.20.1:4.4.7")
+    //implementation fg.deobf('software.bernie.geckolib:geckolib-forge-1.20.1:4.4.9')
 
     // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
