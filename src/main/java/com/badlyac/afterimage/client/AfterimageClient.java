@@ -1,7 +1,7 @@
 package com.badlyac.afterimage.client;
 
 import com.badlyac.afterimage.AfterimageMod;
-import com.badlyac.afterimage.client.renderer.PaleMimicRenderer;
+import com.badlyac.afterimage.monster.palemimic.PaleMimicRenderer;
 import com.badlyac.afterimage.registry.ModEntities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.PostChain;
@@ -23,16 +23,6 @@ public class AfterimageClient {
 
     private static boolean enabled = false;
     private static boolean clientInAfterimage = false;
-
-//    private static float grayStrength = 1.0F;
-//    private static float vignetteStrength = 0.6F;
-//    private static float darkness = 0.15F;
-
-    //    public static void setEffectStrength(float gray, float vignette, float dark) {
-//        grayStrength = gray;
-//        vignetteStrength = vignette;
-//        darkness = dark;
-//    }
 
     public static void enableEffect() {
         if (enabled) return;

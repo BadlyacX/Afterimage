@@ -18,6 +18,7 @@ public class ModCreativeTabs {
                     .icon(() -> new ItemStack(ModItems.AFTERIMAGE_ANCHOR.get()))
                     .displayItems((params, output) -> {
                         output.accept(ModItems.AFTERIMAGE_ANCHOR.get());
+                        output.accept(ModItems.PALE_MIMIC_SPAWN_EGG.get());
                     })
                     .title(net.minecraft.network.chat.Component.literal("Afterimage"))
                     .build()

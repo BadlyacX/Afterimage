@@ -5,27 +5,22 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
 
-public class PaleMimicEntity extends Monster implements GeoEntity {
+public class PaleMimicEntity extends Monster {
 
     private boolean triggered;
     private boolean aggressive;
     private boolean warning;
-    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     private UUID targetPlayerId = null;
 
@@ -44,6 +39,14 @@ public class PaleMimicEntity extends Monster implements GeoEntity {
         super(type, level);
         this.triggered = false;
         this.aggressive = false;
+    }
+
+    public static AttributeSupplier.Builder createAttributes() {
+        return Monster.createMonsterAttributes()
+                .add(Attributes.MAX_HEALTH, 20.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.3D)
+                .add(Attributes.FOLLOW_RANGE, 32.0D)
+                .add(Attributes.ATTACK_DAMAGE, 1.0);
     }
 
     public boolean isTriggered() {
@@ -119,35 +122,6 @@ public class PaleMimicEntity extends Monster implements GeoEntity {
                 0.15F,
                 0.85F
         );
-    }
-
-    @Override
-    public AnimatableInstanceCache getAnimatableInstanceCache() {
-        return cache;
-    }
-
-    @Override
-    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(
-                new AnimationController<>(
-                        this,
-                        "controller",
-                        0,
-                        state -> {
-                            if (state.isMoving()) {
-                                state.setAndContinue(
-                                        RawAnimation.begin().thenLoop("walk")
-                                );
-
-                                return PlayState.CONTINUE;
-                            }
-                            state.setAndContinue(
-                                    RawAnimation.begin().thenLoop("idle")
-                            );
-
-                            return PlayState.CONTINUE;
-                        }
-                ));
     }
 
     @Override
