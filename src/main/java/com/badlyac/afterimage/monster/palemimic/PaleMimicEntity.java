@@ -5,7 +5,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
@@ -137,5 +136,10 @@ public class PaleMimicEntity extends Monster {
                 this.setTarget(nearest);
             }
         }
+    }
+
+    @Override
+    public void registerGoals() {
+
     }
 }

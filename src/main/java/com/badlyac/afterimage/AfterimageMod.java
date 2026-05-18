@@ -28,6 +28,8 @@ public class AfterimageMod {
         ModCreativeTabs.TABS.register(bus);
         ModSounds.SOUND_EVENTS.register(bus);
         ModEntities.ENTITIES.register(bus);
+
+        bus.addListener(AfterimageMod::registerAttributes);
     }
 
     @SubscribeEvent
