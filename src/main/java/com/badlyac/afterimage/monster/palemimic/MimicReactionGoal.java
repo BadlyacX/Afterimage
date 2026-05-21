@@ -1,7 +1,9 @@
 package com.badlyac.afterimage.monster.palemimic;
 
 import com.badlyac.afterimage.registry.ModSounds;
+import com.badlyac.afterimage.util.Clock;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.protocol.game.ClientboundStopSoundPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -15,12 +17,14 @@ import java.util.EnumSet;
 
 public class MimicReactionGoal extends Goal {
 
+    private static final double AGGRESSIVE_SPEED = 1.3D;
+
     private final PaleMimicEntity mimic;
     private ServerPlayer target;
 
     public MimicReactionGoal(PaleMimicEntity mimic) {
         this.mimic = mimic;
-        this.setFlags(EnumSet.of(Flag.LOOK));
+        this.setFlags(EnumSet.noneOf(Flag.class));
     }
 
     @Override
@@ -35,8 +39,17 @@ public class MimicReactionGoal extends Goal {
     }
 
     @Override
+    public void stop() {
+        stopWarningSound();
+        target = null;
+    }
+
+    @Override
     public void tick() {
-        if (target == null) return;
+        if (target == null) {
+            stopWarning();
+            return;
+        }
 
         boolean seen = playerSeesMimic(target);
 
@@ -70,7 +83,7 @@ public class MimicReactionGoal extends Goal {
 
             tickWarning();
 
-            if (mimic.getWarningTicks() >= 400) {
+            if (mimic.getWarningTicks() >= 300) {
                 triggerReaction();
             }
         }
@@ -115,7 +128,7 @@ public class MimicReactionGoal extends Goal {
 
         if (mimic.getWarningTicks() % 20 != 0) return;
 
-        float progress = mimic.getWarningTicks() / 400F;
+        float progress = mimic.getWarningTicks() / 300F;
         float volume = 0.2F + progress * 1.8F;
 
         level.playSound(
@@ -129,6 +142,7 @@ public class MimicReactionGoal extends Goal {
     }
 
     private void triggerReaction() {
+        stopWarning();
         mimic.setTriggered(true);
 
         if (mimic.getRandom().nextFloat() < 0.7F) {
@@ -175,6 +189,28 @@ public class MimicReactionGoal extends Goal {
 
         mimic.setAggressive(true);
         mimic.setAggressiveTicks(0);
+        mimic.getNavigation().stop();
+    }
+
+    private void stopWarning() {
+        if (!mimic.isWarning()) return;
+
+        mimic.setWarning(false);
+        mimic.setWarningTicks(0);
+        stopWarningSound();
+    }
+
+    private void stopWarningSound() {
+        if (!(mimic.level() instanceof ServerLevel level)) return;
+
+        ClientboundStopSoundPacket packet = new ClientboundStopSoundPacket(
+                ModSounds.WHISPERING.get().getLocation(),
+                SoundSource.HOSTILE
+        );
+
+        for (ServerPlayer player : level.players()) {
+            player.connection.send(packet);
+        }
     }
 
     private void tickAggressive() {
@@ -183,16 +219,11 @@ public class MimicReactionGoal extends Goal {
                 mimic.getAggressiveTicks() + 1
         );
 
-        Vec3 dir = target.position()
-                .subtract(mimic.position())
-                .normalize();
+        mimic.getNavigation().moveTo(target, AGGRESSIVE_SPEED);
 
-        mimic.setDeltaMovement(
-                dir.scale(0.8)
-        );
-
-        if (mimic.getAggressiveTicks() >= 20) {
+        if (mimic.getAggressiveTicks() >= Clock.SEC * 10) {
             mimic.setAggressive(false);
+            mimic.getNavigation().stop();
         }
     }
 }

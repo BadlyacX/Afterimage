@@ -1,7 +1,12 @@
 package com.badlyac.afterimage.monster.palemimic;
 
 
+import com.badlyac.afterimage.util.Clock;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
@@ -13,9 +18,12 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class PaleMimicEntity extends Monster {
+    private static final EntityDataAccessor<Optional<UUID>> DATA_DISGUISE_PLAYER_ID =
+            SynchedEntityData.defineId(PaleMimicEntity.class, EntityDataSerializers.OPTIONAL_UUID);
 
     private boolean triggered;
     private boolean aggressive;
@@ -26,6 +34,9 @@ public class PaleMimicEntity extends Monster {
     private int unseenTicks;
     private int warningTicks;
     private int aggressiveTicks;
+
+    public static final PlayerPathRecorder INSTANCE =
+            new PlayerPathRecorder();
 
     public enum State {
         FOLLOWING,
@@ -108,6 +119,41 @@ public class PaleMimicEntity extends Monster {
 
     public void setTargetPlayer(ServerPlayer serverPlayer) {
         this.targetPlayerId = serverPlayer.getUUID();
+        this.setTarget(serverPlayer);
+    }
+
+    public Optional<UUID> getDisguisePlayerId() {
+        return this.entityData.get(DATA_DISGUISE_PLAYER_ID);
+    }
+
+    public void setDisguisePlayer(ServerPlayer serverPlayer) {
+        this.entityData.set(DATA_DISGUISE_PLAYER_ID, Optional.of(serverPlayer.getUUID()));
+    }
+
+    public void clearDisguisePlayer() {
+        this.entityData.set(DATA_DISGUISE_PLAYER_ID, Optional.empty());
+    }
+
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(DATA_DISGUISE_PLAYER_ID, Optional.empty());
+    }
+
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        this.getDisguisePlayerId().ifPresent(uuid -> tag.putUUID("DisguisePlayer", uuid));
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        if (tag.hasUUID("DisguisePlayer")) {
+            this.entityData.set(DATA_DISGUISE_PLAYER_ID, Optional.of(tag.getUUID("DisguisePlayer")));
+        } else {
+            this.clearDisguisePlayer();
+        }
     }
 
     @Override
@@ -127,19 +173,25 @@ public class PaleMimicEntity extends Monster {
     public void tick() {
         super.tick();
 
-        if (!level().isClientSide
-                && this.getTargetPlayer() == null
-                && level() instanceof ServerLevel level) {
-            ServerPlayer nearest = (ServerPlayer) level.getNearestPlayer(this, 64);
+        if (level().isClientSide || !(level() instanceof ServerLevel level)) return;
 
-            if (nearest != null) {
-                this.setTarget(nearest);
+        ServerPlayer target = this.getTargetPlayer();
+
+        if (target == null) {
+            target = (ServerPlayer) level.getNearestPlayer(this, 64);
+            if (target != null) {
+                this.setTargetPlayer(target);
             }
+        }
+
+        if (target != null && !target.isRemoved()) {
+            INSTANCE.record(target);
         }
     }
 
     @Override
     public void registerGoals() {
-
+        this.goalSelector.addGoal(0, new MimicReactionGoal(this));
+        this.goalSelector.addGoal(1, new MimicFollowGoal(this, INSTANCE, Clock.SEC * 2));
     }
 }

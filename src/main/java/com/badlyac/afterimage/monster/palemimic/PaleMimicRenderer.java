@@ -1,18 +1,24 @@
 package com.badlyac.afterimage.monster.palemimic;
 
-import com.mojang.authlib.GameProfile;
+import com.badlyac.afterimage.AfterimageMod;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class PaleMimicRenderer extends MobRenderer<PaleMimicEntity, PlayerModel<PaleMimicEntity>> {
+    private static final ResourceLocation PALE_MIMIC_SKIN = ResourceLocation.fromNamespaceAndPath(
+            AfterimageMod.MOD_ID,
+            "textures/entity/pale_mimic/palemimic_default_skin.png"
+    );
 
     public PaleMimicRenderer(EntityRendererProvider.Context context) {
         super(
@@ -27,19 +33,20 @@ public class PaleMimicRenderer extends MobRenderer<PaleMimicEntity, PlayerModel<
 
     @Override
     public @NotNull ResourceLocation getTextureLocation(PaleMimicEntity entity) {
+        Optional<UUID> disguisePlayerId = entity.getDisguisePlayerId();
 
-        UUID uuid = entity.getUUID();
+        if (disguisePlayerId.isPresent()) {
+            ClientPacketListener connection = Minecraft.getInstance().getConnection();
 
-        AbstractClientPlayer player =
-                (AbstractClientPlayer) Minecraft.getInstance().level.
-                        getPlayerByUUID(uuid);
+            if (connection != null) {
+                PlayerInfo playerInfo = connection.getPlayerInfo(disguisePlayerId.get());
 
-        if (player != null) return player.getSkinTextureLocation();
+                if (playerInfo != null) {
+                    return playerInfo.getSkinLocation();
+                }
+            }
+        }
 
-        GameProfile profile = new GameProfile(uuid, "pale_mimic");
-
-        return Minecraft.getInstance()
-                .getSkinManager()
-                .getInsecureSkinLocation(profile);
+        return PALE_MIMIC_SKIN;
     }
 }

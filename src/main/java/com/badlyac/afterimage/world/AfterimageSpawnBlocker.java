@@ -39,6 +39,8 @@ public class AfterimageSpawnBlocker {
         if (entity.level().dimension() != ModDimensions.AFTERIMAGE_LEVEL)
             return;
 
+        if (entity.getType() == ModEntities.PALE_MIMIC.get()) return;
+
         if (entity instanceof Mob) {
             entity.discard();
         }

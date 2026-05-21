@@ -17,6 +17,8 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -108,10 +110,30 @@ public class PaleMimicSpawnManager {
         );
 
         mimic.setTargetPlayer(player);
+        pickDisguisePlayer(player, level, mimic);
 
         level.addFreshEntity(mimic);
 
         activeMimics.put(player.getUUID(), mimic.getUUID());
+    }
+
+    private static void pickDisguisePlayer(ServerPlayer targetPlayer, ServerLevel level, PaleMimicEntity mimic) {
+        List<ServerPlayer> candidates = new ArrayList<>();
+
+        for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
+            if (player.level() != level) continue;
+            if (player.getUUID().equals(targetPlayer.getUUID())) continue;
+
+            candidates.add(player);
+        }
+
+        if (candidates.isEmpty()) {
+            mimic.clearDisguisePlayer();
+            return;
+        }
+
+        ServerPlayer disguisePlayer = candidates.get(level.random.nextInt(candidates.size()));
+        mimic.setDisguisePlayer(disguisePlayer);
     }
 
     private static BlockPos findSpawnPos(ServerPlayer player, ServerLevel level) {

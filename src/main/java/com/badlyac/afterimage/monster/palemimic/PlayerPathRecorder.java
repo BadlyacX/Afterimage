@@ -51,11 +51,11 @@ public class PlayerPathRecorder {
         }
     }
 
-    public PathPoint getDelayed(UUID id, int delay) {
+    public PathPoint getDelayed(UUID id, long delay) {
         Deque<PathPoint> history = historyMap.get(id);
         if (history == null || history.size() <= delay) return null;
 
-        int targetIndex = history.size() - 1 - delay;
+        long targetIndex = history.size() - 1 - delay;
 
         int i = 0;
         for (PathPoint p : history) {

@@ -16,7 +16,7 @@ public class MimicFollowGoal extends Goal {
     private final PlayerPathRecorder recorder;
 
     private ServerPlayer target;
-    private final int delayTicks;
+    private final long delayTicks;
 
     private int recalcCooldown;
 
@@ -26,7 +26,7 @@ public class MimicFollowGoal extends Goal {
     public MimicFollowGoal(
             PaleMimicEntity mimic,
             PlayerPathRecorder recorder,
-            int delayTicks
+            long delayTicks
     ) {
         this.mimic = mimic;
         this.recorder = recorder;
@@ -59,6 +59,7 @@ public class MimicFollowGoal extends Goal {
         if (target == null) return;
 
         PathPoint point = recorder.getDelayed(target.getUUID(), delayTicks);
+        if (point == null) return;
 
         Vec3 targetPos = point.pos();
 
