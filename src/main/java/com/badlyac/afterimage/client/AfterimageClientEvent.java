@@ -2,6 +2,8 @@ package com.badlyac.afterimage.client;
 
 import com.badlyac.afterimage.AfterimageMod;
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.client.event.RenderGuiEvent;
+import net.minecraftforge.client.event.MovementInputUpdateEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -20,5 +22,16 @@ public class AfterimageClientEvent {
         if (mc.player == null) return;
 
         AfterimageClient.syncAfterimageState(isInAfterimage(mc.player));
+        AfterimageClient.syncPaleMimicNoise(mc);
+    }
+
+    @SubscribeEvent
+    public static void onMovementInputUpdate(MovementInputUpdateEvent event) {
+        AfterimageClient.lockPaleMimicCaptureInput(event.getInput());
+    }
+
+    @SubscribeEvent
+    public static void onRenderGui(RenderGuiEvent.Post event) {
+        AfterimageClient.renderPaleMimicHud(event.getGuiGraphics(), event.getPartialTick());
     }
 }

@@ -25,5 +25,13 @@ public class AfterimageNetwork {
                 AfterimageStateSyncPacket::decode,
                 AfterimageStateSyncPacket::handle
         );
+
+        CHANNEL.registerMessage(
+                index++,
+                PaleMimicCapturePacket.class,
+                PaleMimicCapturePacket::encode,
+                PaleMimicCapturePacket::decode,
+                PaleMimicCapturePacket::handle
+        );
     }
 }

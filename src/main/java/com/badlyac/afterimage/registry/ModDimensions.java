@@ -11,4 +11,8 @@ public class ModDimensions {
             ResourceKey.create(Registries.DIMENSION,
                     ResourceLocation.fromNamespaceAndPath("afterimage", "afterimage"));
 
+    public static final ResourceKey<Level> PALE_MIMIC_VOID_LEVEL =
+            ResourceKey.create(Registries.DIMENSION,
+                    ResourceLocation.fromNamespaceAndPath("afterimage", "pale_mimic_void"));
+
 }

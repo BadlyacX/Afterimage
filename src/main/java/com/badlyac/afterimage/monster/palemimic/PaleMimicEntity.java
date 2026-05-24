@@ -13,9 +13,13 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -24,12 +28,13 @@ import java.util.UUID;
 public class PaleMimicEntity extends Monster {
     private static final EntityDataAccessor<Optional<UUID>> DATA_DISGUISE_PLAYER_ID =
             SynchedEntityData.defineId(PaleMimicEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Optional<UUID>> DATA_TARGET_PLAYER_ID =
+            SynchedEntityData.defineId(PaleMimicEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Boolean> DATA_AGGRESSIVE =
+            SynchedEntityData.defineId(PaleMimicEntity.class, EntityDataSerializers.BOOLEAN);
 
     private boolean triggered;
-    private boolean aggressive;
     private boolean warning;
-
-    private UUID targetPlayerId = null;
 
     private int unseenTicks;
     private int warningTicks;
@@ -48,7 +53,6 @@ public class PaleMimicEntity extends Monster {
     public PaleMimicEntity(EntityType<? extends Monster> type, Level level) {
         super(type, level);
         this.triggered = false;
-        this.aggressive = false;
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -68,11 +72,11 @@ public class PaleMimicEntity extends Monster {
     }
 
     public boolean isAggressive() {
-        return aggressive;
+        return this.entityData.get(DATA_AGGRESSIVE);
     }
 
     public void setAggressive(boolean aggressive) {
-        this.aggressive = aggressive;
+        this.entityData.set(DATA_AGGRESSIVE, aggressive);
     }
 
     public boolean isWarning() {
@@ -108,18 +112,23 @@ public class PaleMimicEntity extends Monster {
     }
 
     public ServerPlayer getTargetPlayer() {
-        if (targetPlayerId == null) return null;
+        Optional<UUID> targetPlayerId = this.getTargetPlayerId();
+        if (targetPlayerId.isEmpty()) return null;
 
         if (this.level() instanceof ServerLevel serverLevel) {
-            return (ServerPlayer) serverLevel.getPlayerByUUID(targetPlayerId);
+            return (ServerPlayer) serverLevel.getPlayerByUUID(targetPlayerId.get());
         }
 
         return null;
     }
 
     public void setTargetPlayer(ServerPlayer serverPlayer) {
-        this.targetPlayerId = serverPlayer.getUUID();
+        this.entityData.set(DATA_TARGET_PLAYER_ID, Optional.of(serverPlayer.getUUID()));
         this.setTarget(serverPlayer);
+    }
+
+    public Optional<UUID> getTargetPlayerId() {
+        return this.entityData.get(DATA_TARGET_PLAYER_ID);
     }
 
     public Optional<UUID> getDisguisePlayerId() {
@@ -138,16 +147,18 @@ public class PaleMimicEntity extends Monster {
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(DATA_DISGUISE_PLAYER_ID, Optional.empty());
+        this.entityData.define(DATA_TARGET_PLAYER_ID, Optional.empty());
+        this.entityData.define(DATA_AGGRESSIVE, false);
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
+    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         this.getDisguisePlayerId().ifPresent(uuid -> tag.putUUID("DisguisePlayer", uuid));
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         if (tag.hasUUID("DisguisePlayer")) {
             this.entityData.set(DATA_DISGUISE_PLAYER_ID, Optional.of(tag.getUUID("DisguisePlayer")));
@@ -170,23 +181,65 @@ public class PaleMimicEntity extends Monster {
     }
 
     @Override
+    public boolean causeFallDamage(float fallDistance, float multiplier, @NotNull DamageSource source) {
+        return false;
+    }
+
+    @Override
+    public boolean hurt(@NotNull DamageSource source, float amount) {
+        return false;
+    }
+
+    @Override
     public void tick() {
         super.tick();
 
+        Player target = this.findTargetPlayer();
+        this.lookAtTargetPlayer(target);
+
         if (level().isClientSide || !(level() instanceof ServerLevel level)) return;
 
-        ServerPlayer target = this.getTargetPlayer();
+        ServerPlayer serverTarget = target instanceof ServerPlayer serverPlayer ? serverPlayer : null;
 
-        if (target == null) {
-            target = (ServerPlayer) level.getNearestPlayer(this, 64);
-            if (target != null) {
-                this.setTargetPlayer(target);
+        if (serverTarget == null) {
+            serverTarget = (ServerPlayer) level.getNearestPlayer(this, 64);
+            if (serverTarget != null) {
+                this.setTargetPlayer(serverTarget);
+                this.lookAtTargetPlayer(serverTarget);
             }
         }
 
-        if (target != null && !target.isRemoved()) {
-            INSTANCE.record(target);
+        if (serverTarget != null && !serverTarget.isRemoved()) {
+            INSTANCE.record(serverTarget);
         }
+    }
+
+    private Player findTargetPlayer() {
+        Optional<UUID> targetPlayerId = this.getTargetPlayerId();
+        if (targetPlayerId.isEmpty()) return null;
+
+        for (Player player : this.level().players()) {
+            if (player.getUUID().equals(targetPlayerId.get())) {
+                return player;
+            }
+        }
+
+        return null;
+    }
+
+    private void lookAtTargetPlayer(Player target) {
+        if (target == null || target.isRemoved()) return;
+
+        Vec3 delta = target.getEyePosition().subtract(this.getEyePosition());
+        double horizontalDistance = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
+
+        float targetYHeadRot = (float) (Mth.atan2(delta.z, delta.x) * Mth.RAD_TO_DEG) - 90.0F;
+        float targetXRot = (float) -(Mth.atan2(delta.y, horizontalDistance) * Mth.RAD_TO_DEG);
+
+        this.setYHeadRot(targetYHeadRot);
+        this.yHeadRotO = targetYHeadRot;
+        this.setXRot(Mth.clamp(targetXRot, -90.0F, 90.0F));
+        this.xRotO = this.getXRot();
     }
 
     @Override

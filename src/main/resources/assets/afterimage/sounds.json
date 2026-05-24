@@ -22,5 +22,13 @@
         "stream": false
       }
     ]
+  },
+  "neck_bone_fracture": {
+    "sounds": [
+      {
+        "name": "afterimage:neck_bone_fracture",
+        "stream": false
+      }
+    ]
   }
 }

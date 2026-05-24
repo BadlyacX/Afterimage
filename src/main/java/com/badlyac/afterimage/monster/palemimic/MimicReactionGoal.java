@@ -1,12 +1,16 @@
 package com.badlyac.afterimage.monster.palemimic;
 
+import com.badlyac.afterimage.network.PaleMimicCapturePacket;
 import com.badlyac.afterimage.registry.ModSounds;
 import com.badlyac.afterimage.util.Clock;
+import com.badlyac.afterimage.util.AfterimageTeleportUtil;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.protocol.game.ClientboundStopSoundPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.BlockHitResult;
@@ -17,10 +21,21 @@ import java.util.EnumSet;
 
 public class MimicReactionGoal extends Goal {
 
-    private static final double AGGRESSIVE_SPEED = 1.3D;
+    private static final double AGGRESSIVE_SPEED = 1.65D;
+    private static final double AGGRESSIVE_TICKS = Clock.SEC * 10;
+    private static final double CAPTURE_DISTANCE = 1.5D;
+    private static final int CAPTURE_LOOK_TICKS = (int) Clock.SEC * 3;
+    private static final int CAPTURE_ROLL_TICKS = 2;
+    private static final int CAPTURE_POST_ROLL_WAIT_TICKS = 6;
+    private static final int CAPTURE_SOUND_TICK = CAPTURE_LOOK_TICKS;
+    private static final int CAPTURE_TELEPORT_TICK =
+            CAPTURE_SOUND_TICK + CAPTURE_ROLL_TICKS + CAPTURE_POST_ROLL_WAIT_TICKS;
 
     private final PaleMimicEntity mimic;
     private ServerPlayer target;
+    private boolean capturing;
+    private int captureTicks;
+    private boolean captureSoundPlayed;
 
     public MimicReactionGoal(PaleMimicEntity mimic) {
         this.mimic = mimic;
@@ -41,6 +56,9 @@ public class MimicReactionGoal extends Goal {
     @Override
     public void stop() {
         stopWarningSound();
+        capturing = false;
+        captureTicks = 0;
+        captureSoundPlayed = false;
         target = null;
     }
 
@@ -48,6 +66,11 @@ public class MimicReactionGoal extends Goal {
     public void tick() {
         if (target == null) {
             stopWarning();
+            return;
+        }
+
+        if (mimic.isAggressive()) {
+            tickAggressive();
             return;
         }
 
@@ -88,9 +111,6 @@ public class MimicReactionGoal extends Goal {
             }
         }
 
-        if (mimic.isAggressive()) {
-            tickAggressive();
-        }
     }
 
     private boolean playerSeesMimic(ServerPlayer player) {
@@ -214,16 +234,92 @@ public class MimicReactionGoal extends Goal {
     }
 
     private void tickAggressive() {
+        if (capturing) {
+            tickCapture();
+            return;
+        }
 
         mimic.setAggressiveTicks(
                 mimic.getAggressiveTicks() + 1
         );
 
+        if (mimic.distanceTo(target) < CAPTURE_DISTANCE) {
+            startCapture();
+            return;
+        }
+
         mimic.getNavigation().moveTo(target, AGGRESSIVE_SPEED);
 
-        if (mimic.getAggressiveTicks() >= Clock.SEC * 10) {
+        if (mimic.getAggressiveTicks() >= AGGRESSIVE_TICKS) {
             mimic.setAggressive(false);
             mimic.getNavigation().stop();
+            disappear();
         }
+    }
+
+    private void startCapture() {
+        if (target == null) return;
+
+        capturing = true;
+        captureTicks = 0;
+        captureSoundPlayed = false;
+
+        mimic.getNavigation().stop();
+        PaleMimicCapturePacket.send(target, mimic.getEyePosition());
+        freezeTarget();
+    }
+
+    private void tickCapture() {
+        if (target == null || target.isRemoved()) {
+            capturing = false;
+            return;
+        }
+
+        freezeTarget();
+        captureTicks++;
+
+        if (!captureSoundPlayed && captureTicks >= CAPTURE_SOUND_TICK) {
+            captureSoundPlayed = true;
+        }
+
+        if (captureTicks >= CAPTURE_TELEPORT_TICK) {
+            finishCapture();
+        }
+    }
+
+    private void freezeTarget() {
+        target.setDeltaMovement(Vec3.ZERO);
+        target.hurtMarked = true;
+        target.addEffect(new MobEffectInstance(
+                MobEffects.MOVEMENT_SLOWDOWN,
+                5,
+                255,
+                false,
+                false,
+                false
+        ));
+    }
+
+    private void playCaptureSound() {
+        if (!(mimic.level() instanceof ServerLevel level)) return;
+
+        level.playSound(
+                null,
+                target.blockPosition(),
+                ModSounds.NECK_BONE_FRACTURE.get(),
+                SoundSource.HOSTILE,
+                1.0F,
+                1.0F
+        );
+    }
+
+    private void finishCapture() {
+        freezeTarget();
+        AfterimageTeleportUtil.teleportToPaleMimicVoidRoom(target);
+
+        mimic.setAggressive(false);
+        mimic.getNavigation().stop();
+        mimic.discard();
+        capturing = false;
     }
 }

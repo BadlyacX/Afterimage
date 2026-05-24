@@ -47,4 +47,15 @@ public final class ModSounds {
                             )
                     )
             );
+
+    public static final RegistryObject<SoundEvent> NECK_BONE_FRACTURE =
+            SOUND_EVENTS.register(
+                    "neck_bone_fracture",
+                    () -> SoundEvent.createVariableRangeEvent(
+                            ResourceLocation.fromNamespaceAndPath(
+                                    AfterimageMod.MOD_ID,
+                                    "neck_bone_fracture"
+                            )
+                    )
+            );
 }
