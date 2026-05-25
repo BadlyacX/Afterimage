@@ -2,6 +2,9 @@ package com.badlyac.afterimage.client;
 
 import com.badlyac.afterimage.AfterimageMod;
 import com.badlyac.afterimage.monster.palemimic.PaleMimicEntity;
+import com.badlyac.afterimage.network.AfterimageNetwork;
+import com.badlyac.afterimage.network.PaleMimicBlackoutReadyPacket;
+import com.badlyac.afterimage.registry.ModDimensions;
 import com.badlyac.afterimage.registry.ModSounds;
 import com.mojang.blaze3d.shaders.AbstractUniform;
 import net.minecraft.client.Minecraft;
@@ -14,6 +17,7 @@ import net.minecraft.client.renderer.PostPass;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
@@ -33,6 +37,9 @@ public class AfterimageClient {
     private static final ResourceLocation EFFECT =
             ResourceLocation.fromNamespaceAndPath(AfterimageMod.MOD_ID, "shaders/post/afterimage.json");
     private static final double PALE_MIMIC_NOISE_RANGE = 20.0D;
+    private static final double PALE_MIMIC_HEARTBEAT_RANGE = 32.0D;
+    private static final int PALE_MIMIC_HEARTBEAT_FAR_TICKS = 35;
+    private static final int PALE_MIMIC_HEARTBEAT_NEAR_TICKS = 6;
     private static final int CAPTURE_LOOK_TICKS = 60;
     private static final int CAPTURE_ROLL_TICKS = 2;
     private static final int CAPTURE_POST_ROLL_WAIT_TICKS = 6;
@@ -44,6 +51,10 @@ public class AfterimageClient {
                     + CAPTURE_POST_ROLL_WAIT_TICKS
                     + CAPTURE_HOLD_BLACK_TICKS
                     + CAPTURE_FADE_OUT_TICKS;
+    private static final int RADIO_STATIC_CHECK_INTERVAL_TICKS = 60 * 20;
+    private static final int RADIO_STATIC_DURATION_TICKS = 80;
+    private static final float RADIO_STATIC_CHANCE = 0.5F;
+    private static final float RADIO_STATIC_NOISE_INTENSITY = 1.0F;
 
     private static boolean effectLoaded = false;
     private static boolean clientInAfterimage = false;
@@ -53,8 +64,13 @@ public class AfterimageClient {
     private static float paleMimicCaptureStartYRot = 0.0F;
     private static float paleMimicCaptureStartXRot = 0.0F;
     private static boolean paleMimicCaptureSoundPlayed = false;
+    private static boolean paleMimicBlackoutReadySent = false;
     private static int paleMimicCaughtTitleTicks = 0;
+    private static int paleMimicHeartbeatCooldown = 0;
+    private static int radioStaticAttemptCooldown = RADIO_STATIC_CHECK_INTERVAL_TICKS;
+    private static int radioStaticTicks = 0;
 
+    private static final RandomSource RANDOM = RandomSource.create();
     private static Field postChainPassesField;
 
     private static void enableEffect() {
@@ -107,6 +123,7 @@ public class AfterimageClient {
         paleMimicCaptureTarget = target;
         paleMimicCaptureTicks = CAPTURE_TOTAL_TICKS;
         paleMimicCaptureSoundPlayed = false;
+        paleMimicBlackoutReadySent = false;
         paleMimicCaughtTitleTicks = 16;
 
         if (mc.player != null) {
@@ -187,7 +204,7 @@ public class AfterimageClient {
     }
 
     private static void updateEffectState() {
-        if (clientInAfterimage || paleMimicNoiseIntensity > 0.0F || isPaleMimicCaptureActive()) {
+        if (clientInAfterimage || paleMimicNoiseIntensity > 0.0F || isPaleMimicCaptureActive() || isRadioStaticActive()) {
             enableEffect();
         } else {
             disableEffect();
@@ -202,8 +219,11 @@ public class AfterimageClient {
             AbstractUniform grayAmount = pass.getEffect().safeGetUniform("GrayAmount");
             grayAmount.set(clientInAfterimage ? 1.0F : 0.0F);
 
+            AbstractUniform time = pass.getEffect().safeGetUniform("Time");
+            time.set(getShaderTime());
+
             AbstractUniform noiseIntensity = pass.getEffect().safeGetUniform("NoiseIntensity");
-            noiseIntensity.set(paleMimicNoiseIntensity);
+            noiseIntensity.set(Math.max(paleMimicNoiseIntensity, getRadioStaticNoiseIntensity()));
 
             AbstractUniform screenRoll = pass.getEffect().safeGetUniform("ScreenRoll");
             screenRoll.set(getPaleMimicCaptureRoll());
@@ -240,6 +260,22 @@ public class AfterimageClient {
 
     private static float smooth(float value) {
         return value * value * (3.0F - 2.0F * value);
+    }
+
+    private static float getShaderTime() {
+        LocalPlayer player = Minecraft.getInstance().player;
+        return player == null ? 0.0F : player.tickCount / 20.0F;
+    }
+
+    private static boolean isRadioStaticActive() {
+        return radioStaticTicks > 0;
+    }
+
+    private static float getRadioStaticNoiseIntensity() {
+        if (!isRadioStaticActive()) return 0.0F;
+
+        float fade = Mth.clamp(radioStaticTicks / 20.0F, 0.0F, 1.0F);
+        return RADIO_STATIC_NOISE_INTENSITY * fade;
     }
 
     @SuppressWarnings("unchecked")
@@ -279,7 +315,11 @@ public class AfterimageClient {
             paleMimicNoiseIntensity = 0.0F;
             paleMimicCaptureTicks = 0;
             paleMimicCaptureSoundPlayed = false;
+            paleMimicBlackoutReadySent = false;
             paleMimicCaughtTitleTicks = 0;
+            paleMimicHeartbeatCooldown = 0;
+            radioStaticAttemptCooldown = RADIO_STATIC_CHECK_INTERVAL_TICKS;
+            radioStaticTicks = 0;
             if (effectLoaded) disableEffect();
             return;
         }
@@ -289,6 +329,8 @@ public class AfterimageClient {
         }
 
         tickPaleMimicCapture(mc.player);
+        tickPaleMimicHeartbeat(mc);
+        tickRadioStatic(mc);
         updateEffectState();
 
         if (effectLoaded) {
@@ -318,8 +360,124 @@ public class AfterimageClient {
             );
         }
 
+        if (!paleMimicBlackoutReadySent && isPaleMimicCaptureBlackoutReady(elapsed)) {
+            paleMimicBlackoutReadySent = true;
+            AfterimageNetwork.CHANNEL.sendToServer(new PaleMimicBlackoutReadyPacket());
+        }
+
         player.setDeltaMovement(Vec3.ZERO);
         paleMimicCaptureTicks--;
+    }
+
+    private static void tickRadioStatic(Minecraft mc) {
+        if (!isInAfterimageDimension(mc)) {
+            radioStaticAttemptCooldown = RADIO_STATIC_CHECK_INTERVAL_TICKS;
+            radioStaticTicks = 0;
+            return;
+        }
+
+        if (radioStaticTicks > 0) {
+            radioStaticTicks--;
+        }
+
+        if (radioStaticAttemptCooldown > 0) {
+            radioStaticAttemptCooldown--;
+            return;
+        }
+
+        radioStaticAttemptCooldown = RADIO_STATIC_CHECK_INTERVAL_TICKS;
+        if (RANDOM.nextFloat() >= RADIO_STATIC_CHANCE) return;
+
+        radioStaticTicks = RADIO_STATIC_DURATION_TICKS;
+        mc.getSoundManager().play(
+                SimpleSoundInstance.forUI(
+                        ModSounds.RADIO_STATIC.get(),
+                        1.0F,
+                        0.9F
+                )
+        );
+    }
+
+    private static boolean isInAfterimageDimension(Minecraft mc) {
+        return mc.level != null && mc.level.dimension() == ModDimensions.AFTERIMAGE_LEVEL;
+    }
+
+    private static void tickPaleMimicHeartbeat(Minecraft mc) {
+        if (isPaleMimicCaptureRollComplete()) {
+            paleMimicHeartbeatCooldown = 0;
+            return;
+        }
+
+        float closeness = getPaleMimicHeartbeatCloseness(mc);
+        if (closeness <= 0.0F) {
+            paleMimicHeartbeatCooldown = 0;
+            return;
+        }
+
+        if (paleMimicHeartbeatCooldown > 0) {
+            paleMimicHeartbeatCooldown--;
+            return;
+        }
+
+        float volume = Mth.lerp(closeness, 0.45F, 1.0F);
+        mc.getSoundManager().play(
+                SimpleSoundInstance.forUI(
+                        ModSounds.HEART_BEAT.get(),
+                        1.0F,
+                        volume
+                )
+        );
+
+        paleMimicHeartbeatCooldown = getPaleMimicHeartbeatInterval(closeness);
+    }
+
+    private static float getPaleMimicHeartbeatCloseness(Minecraft mc) {
+        if (mc.level == null || mc.player == null) return 0.0F;
+
+        double closestDistanceSqr = PALE_MIMIC_HEARTBEAT_RANGE * PALE_MIMIC_HEARTBEAT_RANGE;
+        boolean foundAggressiveMimic = false;
+
+        for (PaleMimicEntity mimic : mc.level.getEntitiesOfClass(
+                PaleMimicEntity.class,
+                mc.player.getBoundingBox().inflate(PALE_MIMIC_HEARTBEAT_RANGE),
+                mimic -> mimic.isAggressive()
+                        && mimic.getTargetPlayerId()
+                        .map(mc.player.getUUID()::equals)
+                        .orElse(false)
+        )) {
+            foundAggressiveMimic = true;
+            closestDistanceSqr = Math.min(closestDistanceSqr, mimic.distanceToSqr(mc.player));
+        }
+
+        if (!foundAggressiveMimic) return 0.0F;
+
+        double distance = Math.sqrt(closestDistanceSqr);
+        double closeness = 1.0D - Math.min(distance / PALE_MIMIC_HEARTBEAT_RANGE, 1.0D);
+        return (float) Math.max(closeness, 0.05D);
+    }
+
+    private static int getPaleMimicHeartbeatInterval(float closeness) {
+        float easedCloseness = closeness * closeness;
+        return Math.max(
+                PALE_MIMIC_HEARTBEAT_NEAR_TICKS,
+                Math.round(Mth.lerp(
+                        easedCloseness,
+                        PALE_MIMIC_HEARTBEAT_FAR_TICKS,
+                        PALE_MIMIC_HEARTBEAT_NEAR_TICKS
+                ))
+        );
+    }
+
+    private static boolean isPaleMimicCaptureRollComplete() {
+        if (!isPaleMimicCaptureActive()) return false;
+
+        int elapsed = CAPTURE_TOTAL_TICKS - paleMimicCaptureTicks;
+        return elapsed >= CAPTURE_LOOK_TICKS + CAPTURE_ROLL_TICKS;
+    }
+
+    private static boolean isPaleMimicCaptureBlackoutReady(int elapsed) {
+        int blackoutStart = CAPTURE_LOOK_TICKS + CAPTURE_ROLL_TICKS + CAPTURE_POST_ROLL_WAIT_TICKS;
+        return elapsed > blackoutStart;
     }
 
     private static void facePaleMimicCaptureTarget(LocalPlayer player, int elapsed) {

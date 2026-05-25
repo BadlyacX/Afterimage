@@ -58,4 +58,26 @@ public final class ModSounds {
                             )
                     )
             );
+
+    public static final RegistryObject<SoundEvent> HEART_BEAT =
+            SOUND_EVENTS.register(
+                    "heart_beat",
+                    () -> SoundEvent.createVariableRangeEvent(
+                            ResourceLocation.fromNamespaceAndPath(
+                                    AfterimageMod.MOD_ID,
+                                    "heart_beat"
+                            )
+                    )
+            );
+
+    public static final RegistryObject<SoundEvent> RADIO_STATIC =
+            SOUND_EVENTS.register(
+                    "radio_static",
+                    () -> SoundEvent.createVariableRangeEvent(
+                            ResourceLocation.fromNamespaceAndPath(
+                                    AfterimageMod.MOD_ID,
+                                    "radio_static"
+                            )
+                    )
+            );
 }

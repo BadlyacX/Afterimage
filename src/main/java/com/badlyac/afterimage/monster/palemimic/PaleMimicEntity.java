@@ -195,7 +195,9 @@ public class PaleMimicEntity extends Monster {
         super.tick();
 
         Player target = this.findTargetPlayer();
-        this.lookAtTargetPlayer(target);
+        if (this.isTriggered() || this.isWarning() || this.isAggressive()) {
+            this.lookAtTargetPlayer(target);
+        }
 
         if (level().isClientSide || !(level() instanceof ServerLevel level)) return;
 
@@ -205,7 +207,9 @@ public class PaleMimicEntity extends Monster {
             serverTarget = (ServerPlayer) level.getNearestPlayer(this, 64);
             if (serverTarget != null) {
                 this.setTargetPlayer(serverTarget);
-                this.lookAtTargetPlayer(serverTarget);
+                if (this.isTriggered() || this.isWarning() || this.isAggressive()) {
+                    this.lookAtTargetPlayer(serverTarget);
+                }
             }
         }
 

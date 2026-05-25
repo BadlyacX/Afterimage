@@ -26,9 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Mod.EventBusSubscriber(modid = AfterimageMod.MOD_ID)
 public class PaleMimicSpawnManager {
     private static final long FIRST_SPAWN_TICKS = 3 * Clock.MIN;
-    private static final long DOUBLE_CHANCE_TICKS = 15 * Clock.MIN;
+    private static final long DOUBLE_CHANCE_TICKS = 6 * Clock.MIN;
 
-    private static final long SPAWN_CHECK_INTERVAL = 20 * Clock.SEC;
+    private static final long SPAWN_CHECK_INTERVAL = Clock.MIN;
 
     private static final double BASE_SPAWN_CHANCE = 0.20;
     private static final double DOUBLED_SPAWN_CHANCE = BASE_SPAWN_CHANCE * 2.0;
@@ -38,6 +38,7 @@ public class PaleMimicSpawnManager {
     private static final Map<UUID, Integer> afterimageTicks = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> spawnCheckCooldown = new ConcurrentHashMap<>();
     private static final Map<UUID, UUID> activeMimics = new ConcurrentHashMap<>();
+    private static final Map<UUID, Boolean> firstSpawnDone = new ConcurrentHashMap<>();
 
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
@@ -63,10 +64,20 @@ public class PaleMimicSpawnManager {
 
         if (ticks < FIRST_SPAWN_TICKS) return;
 
+        if (!firstSpawnDone.getOrDefault(playerId, false)) {
+            if (spawnMimic(player, level)) {
+                firstSpawnDone.put(playerId, true);
+                spawnCheckCooldown.put(playerId, SPAWN_CHECK_INTERVAL);
+            }
+
+            return;
+        }
+
         long cooldown = spawnCheckCooldown.getOrDefault(playerId, 0L);
 
         if (cooldown > 0) {
             spawnCheckCooldown.put(playerId, cooldown - 1);
+            return;
         }
 
         spawnCheckCooldown.put(playerId, SPAWN_CHECK_INTERVAL);
@@ -92,14 +103,14 @@ public class PaleMimicSpawnManager {
         return ticks;
     }
 
-    private static void spawnMimic(ServerPlayer player, ServerLevel level) {
+    private static boolean spawnMimic(ServerPlayer player, ServerLevel level) {
         BlockPos spawnPos = findSpawnPos(player, level);
 
-        if (spawnPos == null) return;
+        if (spawnPos == null) return false;
 
         PaleMimicEntity mimic = ModEntities.PALE_MIMIC.get().create(level);
 
-        if (mimic == null) return;
+        if (mimic == null) return false;
 
         mimic.moveTo(
                 spawnPos.getX() + 0.5,
@@ -115,6 +126,7 @@ public class PaleMimicSpawnManager {
         level.addFreshEntity(mimic);
 
         activeMimics.put(player.getUUID(), mimic.getUUID());
+        return true;
     }
 
     private static void pickDisguisePlayer(ServerPlayer targetPlayer, ServerLevel level, PaleMimicEntity mimic) {
@@ -248,6 +260,7 @@ public class PaleMimicSpawnManager {
 
         afterimageTicks.remove(playerId);
         spawnCheckCooldown.remove(playerId);
+        firstSpawnDone.remove(playerId);
 
         UUID mimicId = activeMimics.remove(playerId);
 

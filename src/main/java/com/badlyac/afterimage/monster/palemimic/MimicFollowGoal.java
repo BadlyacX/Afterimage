@@ -18,11 +18,6 @@ public class MimicFollowGoal extends Goal {
     private ServerPlayer target;
     private final long delayTicks;
 
-    private int recalcCooldown;
-
-    private int stuckTicks = 0;
-    private Vec3 lastPos = Vec3.ZERO;
-
     public MimicFollowGoal(
             PaleMimicEntity mimic,
             PlayerPathRecorder recorder,
@@ -52,6 +47,7 @@ public class MimicFollowGoal extends Goal {
     public void stop() {
         target = null;
         mimic.getNavigation().stop();
+        mimic.setDeltaMovement(Vec3.ZERO);
     }
 
     @Override
@@ -61,47 +57,35 @@ public class MimicFollowGoal extends Goal {
         PathPoint point = recorder.getDelayed(target.getUUID(), delayTicks);
         if (point == null) return;
 
-        Vec3 targetPos = point.pos();
-
-        double distSqr = mimic.distanceToSqr(targetPos);
-        double moved = mimic.position().distanceToSqr(lastPos);
-
-        if (moved < 0.0005) {
-            stuckTicks++;
-        } else {
-            stuckTicks = 0;
-        }
-
-        lastPos = mimic.position();
-
-        if (distSqr < 0.04) {
-            mimic.getNavigation().stop();
-            return;
-        }
-
-        if (recalcCooldown-- <= 0) {
-            recalcCooldown = 5;
-
-            mimic.getNavigation().moveTo(
-                    targetPos.x,
-                    targetPos.y,
-                    targetPos.z,
-                    getSpeed(distSqr)
-            );
-
-            if (point.jumping() && mimic.onGround())
-                mimic.getJumpControl().jump();
-        }
+        replay(point);
     }
 
-    private double getSpeed(double distSqr) {
-        double dist = Math.sqrt(distSqr);
+    private void replay(PathPoint point) {
+        mimic.getNavigation().stop();
+        mimic.setDeltaMovement(point.movement());
+        mimic.moveTo(
+                point.pos().x,
+                point.pos().y,
+                point.pos().z,
+                point.yaw(),
+                point.pitch()
+        );
+        mimic.setYRot(point.yaw());
+        mimic.setXRot(point.pitch());
+        mimic.setYHeadRot(point.yaw());
+        mimic.setYBodyRot(point.yaw());
+        mimic.yRotO = point.yaw();
+        mimic.xRotO = point.pitch();
+        mimic.yHeadRotO = point.yaw();
+        mimic.yBodyRotO = point.yaw();
+        mimic.setShiftKeyDown(point.shiftKeyDown());
+        mimic.setSprinting(point.sprinting());
+        mimic.setSwimming(point.swimming());
+        mimic.setPose(point.pose());
 
-        double base = 0.6;
-        double max = 1.2;
-
-        double t = Math.min(dist / 10.0, 1.0);
-        return base + (max - base) * t;
+        if (point.jumping() && mimic.onGround()) {
+            mimic.getJumpControl().jump();
+        }
     }
 
     private void disappear() {

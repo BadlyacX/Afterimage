@@ -18,6 +18,9 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class MimicReactionGoal extends Goal {
 
@@ -28,8 +31,11 @@ public class MimicReactionGoal extends Goal {
     private static final int CAPTURE_ROLL_TICKS = 2;
     private static final int CAPTURE_POST_ROLL_WAIT_TICKS = 6;
     private static final int CAPTURE_SOUND_TICK = CAPTURE_LOOK_TICKS;
-    private static final int CAPTURE_TELEPORT_TICK =
+    private static final int CAPTURE_BLACKOUT_TICK =
             CAPTURE_SOUND_TICK + CAPTURE_ROLL_TICKS + CAPTURE_POST_ROLL_WAIT_TICKS;
+    private static final int CAPTURE_TELEPORT_FALLBACK_TICK =
+            CAPTURE_BLACKOUT_TICK + (int) Clock.SEC * 3;
+    private static final Map<UUID, MimicReactionGoal> ACTIVE_CAPTURES = new HashMap<>();
 
     private final PaleMimicEntity mimic;
     private ServerPlayer target;
@@ -40,6 +46,13 @@ public class MimicReactionGoal extends Goal {
     public MimicReactionGoal(PaleMimicEntity mimic) {
         this.mimic = mimic;
         this.setFlags(EnumSet.noneOf(Flag.class));
+    }
+
+    public static void finishCaptureFor(ServerPlayer player) {
+        MimicReactionGoal capture = ACTIVE_CAPTURES.get(player.getUUID());
+        if (capture != null && capture.isCapturing(player)) {
+            capture.finishCapture();
+        }
     }
 
     @Override
@@ -55,6 +68,7 @@ public class MimicReactionGoal extends Goal {
 
     @Override
     public void stop() {
+        clearActiveCapture();
         stopWarningSound();
         capturing = false;
         captureTicks = 0;
@@ -263,18 +277,22 @@ public class MimicReactionGoal extends Goal {
         capturing = true;
         captureTicks = 0;
         captureSoundPlayed = false;
+        ACTIVE_CAPTURES.put(target.getUUID(), this);
 
-        mimic.getNavigation().stop();
+        freezeMimic();
         PaleMimicCapturePacket.send(target, mimic.getEyePosition());
         freezeTarget();
     }
 
     private void tickCapture() {
         if (target == null || target.isRemoved()) {
+            freezeMimic();
+            clearActiveCapture();
             capturing = false;
             return;
         }
 
+        freezeMimic();
         freezeTarget();
         captureTicks++;
 
@@ -282,7 +300,7 @@ public class MimicReactionGoal extends Goal {
             captureSoundPlayed = true;
         }
 
-        if (captureTicks >= CAPTURE_TELEPORT_TICK) {
+        if (captureTicks >= CAPTURE_TELEPORT_FALLBACK_TICK) {
             finishCapture();
         }
     }
@@ -300,6 +318,25 @@ public class MimicReactionGoal extends Goal {
         ));
     }
 
+    private void freezeMimic() {
+        mimic.getNavigation().stop();
+        mimic.setDeltaMovement(Vec3.ZERO);
+        mimic.hurtMarked = true;
+    }
+
+    private boolean isCapturing(ServerPlayer player) {
+        return capturing
+                && target != null
+                && target.getUUID().equals(player.getUUID())
+                && !target.isRemoved();
+    }
+
+    private void clearActiveCapture() {
+        if (target != null && ACTIVE_CAPTURES.get(target.getUUID()) == this) {
+            ACTIVE_CAPTURES.remove(target.getUUID());
+        }
+    }
+
     private void playCaptureSound() {
         if (!(mimic.level() instanceof ServerLevel level)) return;
 
@@ -314,6 +351,10 @@ public class MimicReactionGoal extends Goal {
     }
 
     private void finishCapture() {
+        if (!capturing || target == null || target.isRemoved()) return;
+
+        clearActiveCapture();
+        freezeMimic();
         freezeTarget();
         AfterimageTeleportUtil.teleportToPaleMimicVoidRoom(target);
 

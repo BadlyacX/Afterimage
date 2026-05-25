@@ -33,5 +33,13 @@ public class AfterimageNetwork {
                 PaleMimicCapturePacket::decode,
                 PaleMimicCapturePacket::handle
         );
+
+        CHANNEL.registerMessage(
+                index++,
+                PaleMimicBlackoutReadyPacket.class,
+                PaleMimicBlackoutReadyPacket::encode,
+                PaleMimicBlackoutReadyPacket::decode,
+                PaleMimicBlackoutReadyPacket::handle
+        );
     }
 }

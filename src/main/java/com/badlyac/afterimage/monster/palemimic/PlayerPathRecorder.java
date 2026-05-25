@@ -14,7 +14,7 @@ public class PlayerPathRecorder {
     private final Map<UUID, Deque<PathPoint>> historyMap = new ConcurrentHashMap<>();
     private final Map<UUID, Boolean> lastGroundMap = new ConcurrentHashMap<>();
     private static final int MAX_SIZE = 200;
-    private static final double MIN_DIST_SQ = 0.0025;
+    private static final double MIN_RECORDED_MOVE_DISTANCE_SQ = 1.0E-6D;
 
     public void record(ServerPlayer player) {
         UUID id = player.getUUID();
@@ -25,26 +25,22 @@ public class PlayerPathRecorder {
 
         Vec3 pos = player.position();
 
-        if (history.isEmpty()) {
-            history.addLast(new PathPoint(
-                    pos,
-                    player.getYRot(),
-                    player.getXRot(),
-                    isJumped(player)
-            ));
+        if (!history.isEmpty()
+                && history.getLast().pos().distanceToSqr(pos) <= MIN_RECORDED_MOVE_DISTANCE_SQ) {
             return;
         }
 
-        PathPoint last = history.getLast();
-
-        if (last.pos().distanceToSqr(pos) > MIN_DIST_SQ) {
-            history.addLast(new PathPoint(
-                    pos,
-                    player.getYRot(),
-                    player.getXRot(),
-                    isJumped(player)
-            ));
-        }
+        history.addLast(new PathPoint(
+                pos,
+                player.getDeltaMovement(),
+                player.getYRot(),
+                player.getXRot(),
+                isJumped(player),
+                player.isShiftKeyDown(),
+                player.isSprinting(),
+                player.isSwimming(),
+                player.getPose()
+        ));
 
         if (history.size() > MAX_SIZE) {
             history.removeFirst();
@@ -55,8 +51,7 @@ public class PlayerPathRecorder {
         Deque<PathPoint> history = historyMap.get(id);
         if (history == null || history.size() <= delay) return null;
 
-        long targetIndex = history.size() - 1 - delay;
-
+        int targetIndex = (int) (history.size() - 1 - delay);
         int i = 0;
         for (PathPoint p : history) {
             if (i == targetIndex) return p;

@@ -30,5 +30,21 @@
         "stream": false
       }
     ]
+  },
+  "heart_beat": {
+    "sounds": [
+      {
+        "name": "afterimage:heart_beat",
+        "stream": false
+      }
+    ]
+  },
+  "radio_static": {
+    "sounds": [
+      {
+        "name": "afterimage:radio_static",
+        "stream": false
+      }
+    ]
   }
 }
