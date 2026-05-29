@@ -1,0 +1,41 @@
+package com.badlyac.afterimage.data.worldgen;
+
+import com.badlyac.afterimage.AfterimageMod;
+import com.badlyac.afterimage.data.levelgen.placement.GridPlacement;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.worldgen.BootstapContext;
+import net.minecraft.data.worldgen.features.TreeFeatures;
+import net.minecraft.data.worldgen.placement.PlacementUtils;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.world.level.levelgen.placement.PlacementModifier;
+
+import java.util.List;
+
+public class BirchPlacement {
+
+    private static final int spacing = 16;
+
+    public static final ResourceKey<PlacedFeature> GRID_BIRCH_KEY = ResourceKey.create(
+            Registries.PLACED_FEATURE,
+            ResourceLocation.fromNamespaceAndPath(AfterimageMod.MOD_ID,"grid_birch")
+    );
+
+    public static void bootstrap(BootstapContext<PlacedFeature> context) {
+        HolderGetter<ConfiguredFeature<?, ?>> holdergetter = context.lookup(Registries.CONFIGURED_FEATURE);
+
+        Holder<ConfiguredFeature<?, ?>> nativeBirch = holdergetter.getOrThrow(TreeFeatures.BIRCH);
+
+        List<PlacementModifier> modifiers = List.of(
+                new GridPlacement(spacing),
+                PlacementUtils.filteredByBlockSurvival(Blocks.BIRCH_SAPLING)
+        );
+
+        PlacementUtils.register(context, GRID_BIRCH_KEY, nativeBirch, modifiers);
+    }
+}

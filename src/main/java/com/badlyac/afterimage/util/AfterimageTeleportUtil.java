@@ -3,7 +3,6 @@ package com.badlyac.afterimage.util;
 import com.badlyac.afterimage.registry.ModDimensions;
 import com.badlyac.afterimage.registry.ModEntities;
 import com.badlyac.afterimage.monster.palemimic.PaleMimicEntity;
-import com.badlyac.afterimage.world.PaleMimicVoidRoomCollapseHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -33,7 +32,7 @@ public final class AfterimageTeleportUtil {
         teleport(player, server.overworld());
     }
 
-    public static boolean teleportToPaleMimicVoidRoom(ServerPlayer player) {
+    public static boolean teleportToPaleMimicDimension(ServerPlayer player) {
         MinecraftServer server = player.getServer();
         if (server == null) return false;
 
@@ -53,7 +52,7 @@ public final class AfterimageTeleportUtil {
         );
 
         player.resetFallDistance();
-        PaleMimicVoidRoomCollapseHandler.start(PALE_MIMIC_VOID_ROOM_CENTER);
+
         return true;
     }
 

@@ -280,8 +280,9 @@ public class MimicReactionGoal extends Goal {
         ACTIVE_CAPTURES.put(target.getUUID(), this);
 
         freezeMimic();
-        PaleMimicCapturePacket.send(target, mimic.getEyePosition());
         freezeTarget();
+
+        PaleMimicCapturePacket.send(target, mimic.getEyePosition());
     }
 
     private void tickCapture() {
@@ -356,7 +357,7 @@ public class MimicReactionGoal extends Goal {
         clearActiveCapture();
         freezeMimic();
         freezeTarget();
-        AfterimageTeleportUtil.teleportToPaleMimicVoidRoom(target);
+        AfterimageTeleportUtil.teleportToPaleMimicDimension(target);
 
         mimic.setAggressive(false);
         mimic.getNavigation().stop();
