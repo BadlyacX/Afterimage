@@ -12,6 +12,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.placement.BiomeFilter;
+import net.minecraft.world.level.levelgen.placement.HeightmapPlacement;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
 
@@ -19,11 +22,13 @@ import java.util.List;
 
 public class BirchPlacement {
 
-    private static final int spacing = 16;
+    private static final int SPACING = 16;
+
+    public BirchPlacement() {}
 
     public static final ResourceKey<PlacedFeature> GRID_BIRCH_KEY = ResourceKey.create(
             Registries.PLACED_FEATURE,
-            ResourceLocation.fromNamespaceAndPath(AfterimageMod.MOD_ID,"grid_birch")
+            ResourceLocation.fromNamespaceAndPath(AfterimageMod.MOD_ID, "grid_birch")
     );
 
     public static void bootstrap(BootstapContext<PlacedFeature> context) {
@@ -32,7 +37,9 @@ public class BirchPlacement {
         Holder<ConfiguredFeature<?, ?>> nativeBirch = holdergetter.getOrThrow(TreeFeatures.BIRCH);
 
         List<PlacementModifier> modifiers = List.of(
-                new GridPlacement(spacing),
+                new GridPlacement(SPACING),
+                HeightmapPlacement.onHeightmap(Heightmap.Types.OCEAN_FLOOR),
+                BiomeFilter.biome(),
                 PlacementUtils.filteredByBlockSurvival(Blocks.BIRCH_SAPLING)
         );
 

@@ -1,5 +1,6 @@
 package com.badlyac.afterimage.data.levelgen.placement;
 
+import com.badlyac.afterimage.registry.ModPlacementTypes;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
@@ -25,13 +26,31 @@ public class GridPlacement extends PlacementModifier {
 
     @Override
     public @NotNull Stream<BlockPos> getPositions(@NotNull PlacementContext context, @NotNull RandomSource randomSource, @NotNull BlockPos blockPos) {
-        int chunkX = blockPos.getX();
-        int chunkZ = blockPos.getZ();
+        int minX = blockPos.getX();
+        int minZ = blockPos.getZ();
+        int maxX = minX + 15;
+        int maxZ = minZ + 15;
 
-        int gridX = Math.floorDiv(chunkX, spacing) * spacing;
-        int gridZ = Math.floorDiv(chunkZ, spacing) * spacing;
+        int firstGridX = firstGridCoordinateAtOrAfter(minX);
+        int firstGridZ = firstGridCoordinateAtOrAfter(minZ);
 
-        return Stream.of(new BlockPos(gridX, blockPos.getY(), gridZ));
+        if (firstGridX > maxX || firstGridZ > maxZ) {
+            return Stream.empty();
+        }
+
+        Stream.Builder<BlockPos> positions = Stream.builder();
+
+        for (int x = firstGridX; x <= maxX; x += spacing) {
+            for (int z = firstGridZ; z <= maxZ; z += spacing) {
+                positions.add(new BlockPos(x, blockPos.getY(), z));
+            }
+        }
+
+        return positions.build();
+    }
+
+    private int firstGridCoordinateAtOrAfter(int coordinate) {
+        return -Math.floorDiv(-coordinate, spacing) * spacing;
     }
 
     @Override

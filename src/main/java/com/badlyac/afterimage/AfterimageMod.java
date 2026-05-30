@@ -5,6 +5,7 @@ import com.badlyac.afterimage.network.AfterimageNetwork;
 import com.badlyac.afterimage.registry.ModCreativeTabs;
 import com.badlyac.afterimage.registry.ModEntities;
 import com.badlyac.afterimage.registry.ModItems;
+import com.badlyac.afterimage.registry.ModPlacementTypes;
 import com.badlyac.afterimage.registry.ModSounds;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
@@ -24,6 +25,7 @@ public class AfterimageMod {
 
         AfterimageNetwork.register();
 
+        ModPlacementTypes.PLACEMENT_MODIFIERS.register(bus);
         ModItems.ITEMS.register(bus);
         ModCreativeTabs.TABS.register(bus);
         ModSounds.SOUND_EVENTS.register(bus);
