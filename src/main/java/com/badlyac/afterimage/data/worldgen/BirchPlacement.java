@@ -22,7 +22,7 @@ import java.util.List;
 
 public class BirchPlacement {
 
-    private static final int SPACING = 16;
+    private static final int SPACING = 32;
 
     public BirchPlacement() {}
 

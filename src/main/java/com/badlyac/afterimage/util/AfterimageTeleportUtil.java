@@ -1,13 +1,10 @@
 package com.badlyac.afterimage.util;
 
 import com.badlyac.afterimage.registry.ModDimensions;
-import com.badlyac.afterimage.registry.ModEntities;
-import com.badlyac.afterimage.monster.palemimic.PaleMimicEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
@@ -36,7 +33,7 @@ public final class AfterimageTeleportUtil {
         MinecraftServer server = player.getServer();
         if (server == null) return false;
 
-        ServerLevel target = server.getLevel(ModDimensions.PALE_MIMIC_VOID_LEVEL);
+        ServerLevel target = server.getLevel(ModDimensions.PALE_MIMIC_PLAIN_LEVEL);
         if (target == null) return false;
 
 //        buildPaleMimicVoidRoom(target);

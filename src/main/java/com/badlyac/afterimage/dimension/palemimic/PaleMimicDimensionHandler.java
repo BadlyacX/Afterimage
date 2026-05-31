@@ -29,5 +29,4 @@ public final class PaleMimicDimensionHandler {
         // Mobs are now allowed to join for the Silent Hill vibe
     }
 
-
 }
