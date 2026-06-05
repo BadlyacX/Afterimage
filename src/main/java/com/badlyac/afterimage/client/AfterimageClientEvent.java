@@ -1,6 +1,7 @@
 package com.badlyac.afterimage.client;
 
 import com.badlyac.afterimage.AfterimageMod;
+import com.badlyac.afterimage.registry.ModDimensions;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.client.event.MovementInputUpdateEvent;
@@ -23,6 +24,9 @@ public class AfterimageClientEvent {
 
         AfterimageClient.syncAfterimageState(isInAfterimage(mc.player));
         AfterimageClient.syncPaleMimicNoise(mc);
+        AfterimageClient.syncPaleMimicPlainState(
+                mc.level != null && mc.level.dimension() == ModDimensions.PALE_MIMIC_PLAIN_LEVEL
+        );
     }
 
     @SubscribeEvent

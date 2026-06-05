@@ -36,6 +36,8 @@ public class AfterimageClient {
 
     private static final ResourceLocation EFFECT =
             ResourceLocation.fromNamespaceAndPath(AfterimageMod.MOD_ID, "shaders/post/afterimage.json");
+    private static final ResourceLocation BUMPY_EFFECT =
+            ResourceLocation.fromNamespaceAndPath(AfterimageMod.MOD_ID, "shaders/post/bumpy.json");
     private static final double PALE_MIMIC_NOISE_RANGE = 20.0D;
     private static final double PALE_MIMIC_HEARTBEAT_RANGE = 32.0D;
     private static final int PALE_MIMIC_HEARTBEAT_FAR_TICKS = 35;
@@ -56,8 +58,9 @@ public class AfterimageClient {
     private static final float RADIO_STATIC_CHANCE = 0.5F;
     private static final float RADIO_STATIC_NOISE_INTENSITY = 1.0F;
 
-    private static boolean effectLoaded = false;
+    private static ResourceLocation loadedEffect = null;
     private static boolean clientInAfterimage = false;
+    private static boolean clientInPaleMimicPlain = false;
     private static float paleMimicNoiseIntensity = 0.0F;
     private static int paleMimicCaptureTicks = 0;
     private static Vec3 paleMimicCaptureTarget = Vec3.ZERO;
@@ -73,29 +76,23 @@ public class AfterimageClient {
     private static final RandomSource RANDOM = RandomSource.create();
     private static Field postChainPassesField;
 
-    private static void enableEffect() {
-        if (effectLoaded) return;
-
+    private static void loadEffect(ResourceLocation effect) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
-
-        effectLoaded = true;
-        mc.execute(() -> {
-            mc.gameRenderer.loadEffect(EFFECT);
-            applyEffectUniforms();
-        });
+        if (effect.equals(loadedEffect)) return;
+        loadedEffect = effect;
+        mc.execute(() -> mc.gameRenderer.loadEffect(effect));
     }
 
     private static void disableEffect() {
-        if (!effectLoaded) return;
-
+        if (loadedEffect == null) return;
+        loadedEffect = null;
         Minecraft mc = Minecraft.getInstance();
-        effectLoaded = false;
         mc.execute(mc.gameRenderer::shutdownEffect);
     }
 
     public static boolean isEnabled() {
-        return effectLoaded;
+        return loadedEffect != null;
     }
 
     public static void syncAfterimageState(boolean afterimage) {
@@ -204,11 +201,20 @@ public class AfterimageClient {
     }
 
     private static void updateEffectState() {
-        if (clientInAfterimage || paleMimicNoiseIntensity > 0.0F || isPaleMimicCaptureActive() || isRadioStaticActive()) {
-            enableEffect();
+        boolean needsAfterimage = clientInAfterimage || paleMimicNoiseIntensity > 0.0F || isPaleMimicCaptureActive() || isRadioStaticActive();
+        if (needsAfterimage) {
+            loadEffect(EFFECT);
+        } else if (clientInPaleMimicPlain) {
+            loadEffect(BUMPY_EFFECT);
         } else {
             disableEffect();
         }
+    }
+
+    public static void syncPaleMimicPlainState(boolean inPaleMimicPlain) {
+        if (clientInPaleMimicPlain == inPaleMimicPlain) return;
+        clientInPaleMimicPlain = inPaleMimicPlain;
+        updateEffectState();
     }
 
     private static void applyEffectUniforms() {
@@ -312,6 +318,7 @@ public class AfterimageClient {
 
         if (mc.player == null) {
             clientInAfterimage = false;
+            clientInPaleMimicPlain = false;
             paleMimicNoiseIntensity = 0.0F;
             paleMimicCaptureTicks = 0;
             paleMimicCaptureSoundPlayed = false;
@@ -320,7 +327,7 @@ public class AfterimageClient {
             paleMimicHeartbeatCooldown = 0;
             radioStaticAttemptCooldown = RADIO_STATIC_CHECK_INTERVAL_TICKS;
             radioStaticTicks = 0;
-            if (effectLoaded) disableEffect();
+            if (loadedEffect != null) disableEffect();
             return;
         }
 
@@ -333,14 +340,12 @@ public class AfterimageClient {
         tickRadioStatic(mc);
         updateEffectState();
 
-        if (effectLoaded) {
+        if (loadedEffect != null) {
             PostChain effect = mc.gameRenderer.currentEffect();
-            if (effect == null || !EFFECT.toString().equals(effect.getName())) {
-                mc.gameRenderer.loadEffect(EFFECT);
-                applyEffectUniforms();
-            } else {
-                applyEffectUniforms();
+            if (effect == null || !loadedEffect.toString().equals(effect.getName())) {
+                mc.gameRenderer.loadEffect(loadedEffect);
             }
+            applyEffectUniforms();
         }
     }
 
