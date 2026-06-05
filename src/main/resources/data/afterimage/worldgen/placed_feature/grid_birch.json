@@ -1,5 +1,5 @@
 {
-  "feature": "minecraft:birch",
+  "feature": "afterimage:fixed_birch",
   "placement": [
     {
       "type": "afterimage:grid",

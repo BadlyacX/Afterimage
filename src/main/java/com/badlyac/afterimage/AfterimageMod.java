@@ -4,6 +4,7 @@ import com.badlyac.afterimage.monster.palemimic.PaleMimicEntity;
 import com.badlyac.afterimage.network.AfterimageNetwork;
 import com.badlyac.afterimage.registry.ModCreativeTabs;
 import com.badlyac.afterimage.registry.ModEntities;
+import com.badlyac.afterimage.registry.ModFeatures;
 import com.badlyac.afterimage.registry.ModItems;
 import com.badlyac.afterimage.registry.ModPlacementTypes;
 import com.badlyac.afterimage.registry.ModSounds;
@@ -25,6 +26,7 @@ public class AfterimageMod {
 
         AfterimageNetwork.register();
 
+        ModFeatures.FEATURES.register(bus);
         ModPlacementTypes.PLACEMENT_MODIFIERS.register(bus);
         ModItems.ITEMS.register(bus);
         ModCreativeTabs.TABS.register(bus);
