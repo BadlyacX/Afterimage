@@ -219,8 +219,7 @@ public class AfterimageClient {
         if (!isPaleMimicCaptureActive()) return 0.0F;
 
         int elapsed = CAPTURE_TOTAL_TICKS - paleMimicCaptureTicks;
-        int rollStart = CAPTURE_LOOK_TICKS;
-        float progress = Mth.clamp((elapsed - rollStart) / (float) CAPTURE_ROLL_TICKS, 0.0F, 1.0F);
+        float progress = Mth.clamp((elapsed - CAPTURE_LOOK_TICKS) / (float) CAPTURE_ROLL_TICKS, 0.0F, 1.0F);
         return smooth(progress) * Mth.HALF_PI;
     }
 
