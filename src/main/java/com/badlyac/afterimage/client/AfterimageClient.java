@@ -6,14 +6,13 @@ import com.badlyac.afterimage.network.AfterimageNetwork;
 import com.badlyac.afterimage.network.PaleMimicBlackoutReadyPacket;
 import com.badlyac.afterimage.registry.ModDimensions;
 import com.badlyac.afterimage.registry.ModSounds;
+import com.badlyac.afterimage.util.PostProcessEffectUtil;
 import com.mojang.blaze3d.shaders.AbstractUniform;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.PostChain;
-import net.minecraft.client.renderer.PostPass;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -24,9 +23,6 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import com.mojang.math.Axis;
-
-import java.lang.reflect.Field;
-import java.util.List;
 
 @Mod.EventBusSubscriber(
         modid = AfterimageMod.MOD_ID,
@@ -58,7 +54,6 @@ public class AfterimageClient {
     private static final float RADIO_STATIC_CHANCE = 0.5F;
     private static final float RADIO_STATIC_NOISE_INTENSITY = 1.0F;
 
-    private static ResourceLocation loadedEffect = null;
     private static boolean clientInAfterimage = false;
     private static boolean clientInPaleMimicPlain = false;
     private static float paleMimicNoiseIntensity = 0.0F;
@@ -74,25 +69,9 @@ public class AfterimageClient {
     private static int radioStaticTicks = 0;
 
     private static final RandomSource RANDOM = RandomSource.create();
-    private static Field postChainPassesField;
-
-    private static void loadEffect(ResourceLocation effect) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null) return;
-        if (effect.equals(loadedEffect)) return;
-        loadedEffect = effect;
-        mc.execute(() -> mc.gameRenderer.loadEffect(effect));
-    }
-
-    private static void disableEffect() {
-        if (loadedEffect == null) return;
-        loadedEffect = null;
-        Minecraft mc = Minecraft.getInstance();
-        mc.execute(mc.gameRenderer::shutdownEffect);
-    }
 
     public static boolean isEnabled() {
-        return loadedEffect != null;
+        return PostProcessEffectUtil.isEnabled();
     }
 
     public static void syncAfterimageState(boolean afterimage) {
@@ -203,11 +182,11 @@ public class AfterimageClient {
     private static void updateEffectState() {
         boolean needsAfterimage = clientInAfterimage || paleMimicNoiseIntensity > 0.0F || isPaleMimicCaptureActive() || isRadioStaticActive();
         if (needsAfterimage) {
-            loadEffect(EFFECT);
+            PostProcessEffectUtil.load(EFFECT);
         } else if (clientInPaleMimicPlain) {
-            loadEffect(BUMPY_EFFECT);
+            PostProcessEffectUtil.load(BUMPY_EFFECT);
         } else {
-            disableEffect();
+            PostProcessEffectUtil.disable();
         }
     }
 
@@ -218,10 +197,7 @@ public class AfterimageClient {
     }
 
     private static void applyEffectUniforms() {
-        PostChain effect = Minecraft.getInstance().gameRenderer.currentEffect();
-        if (effect == null || !EFFECT.toString().equals(effect.getName())) return;
-
-        for (PostPass pass : getPasses(effect)) {
+        PostProcessEffectUtil.applyToPasses(EFFECT, pass -> {
             AbstractUniform grayAmount = pass.getEffect().safeGetUniform("GrayAmount");
             grayAmount.set(clientInAfterimage ? 1.0F : 0.0F);
 
@@ -236,7 +212,7 @@ public class AfterimageClient {
 
             AbstractUniform blackout = pass.getEffect().safeGetUniform("Blackout");
             blackout.set(getPaleMimicCaptureBlackout());
-        }
+        });
     }
 
     private static float getPaleMimicCaptureRoll() {
@@ -284,32 +260,6 @@ public class AfterimageClient {
         return RADIO_STATIC_NOISE_INTENSITY * fade;
     }
 
-    @SuppressWarnings("unchecked")
-    private static List<PostPass> getPasses(PostChain effect) {
-        try {
-            if (postChainPassesField == null) {
-                postChainPassesField = getPostChainPassesField();
-            }
-
-            return (List<PostPass>) postChainPassesField.get(effect);
-        } catch (ReflectiveOperationException exception) {
-            return List.of();
-        }
-    }
-
-    private static Field getPostChainPassesField() throws NoSuchFieldException {
-        for (String name : List.of("passes", "f_110009_")) {
-            try {
-                Field field = PostChain.class.getDeclaredField(name);
-                field.setAccessible(true);
-                return field;
-            } catch (NoSuchFieldException ignored) {
-            }
-        }
-
-        throw new NoSuchFieldException("PostChain passes");
-    }
-
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent e) {
         if (e.phase != TickEvent.Phase.END) return;
@@ -327,7 +277,7 @@ public class AfterimageClient {
             paleMimicHeartbeatCooldown = 0;
             radioStaticAttemptCooldown = RADIO_STATIC_CHECK_INTERVAL_TICKS;
             radioStaticTicks = 0;
-            if (loadedEffect != null) disableEffect();
+            if (PostProcessEffectUtil.isEnabled()) PostProcessEffectUtil.disable();
             return;
         }
 
@@ -340,11 +290,8 @@ public class AfterimageClient {
         tickRadioStatic(mc);
         updateEffectState();
 
-        if (loadedEffect != null) {
-            PostChain effect = mc.gameRenderer.currentEffect();
-            if (effect == null || !loadedEffect.toString().equals(effect.getName())) {
-                mc.gameRenderer.loadEffect(loadedEffect);
-            }
+        if (PostProcessEffectUtil.isEnabled()) {
+            PostProcessEffectUtil.ensureLoadedEffectIsActive();
             applyEffectUniforms();
         }
     }

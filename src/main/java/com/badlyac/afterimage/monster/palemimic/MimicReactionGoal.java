@@ -338,19 +338,6 @@ public class MimicReactionGoal extends Goal {
         }
     }
 
-    private void playCaptureSound() {
-        if (!(mimic.level() instanceof ServerLevel level)) return;
-
-        level.playSound(
-                null,
-                target.blockPosition(),
-                ModSounds.NECK_BONE_FRACTURE.get(),
-                SoundSource.HOSTILE,
-                1.0F,
-                1.0F
-        );
-    }
-
     private void finishCapture() {
         if (!capturing || target == null || target.isRemoved()) return;
 

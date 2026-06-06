@@ -1,6 +1,6 @@
 package com.badlyac.afterimage.item;
 
-import com.badlyac.afterimage.handler.AfterimageTravelHandler;
+import com.badlyac.afterimage.teleporter.AfterimageTravelHandler;
 import com.badlyac.afterimage.registry.ModDimensions;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
