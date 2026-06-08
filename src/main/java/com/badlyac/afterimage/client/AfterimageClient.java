@@ -32,8 +32,6 @@ public class AfterimageClient {
 
     private static final ResourceLocation EFFECT =
             ResourceLocation.fromNamespaceAndPath(AfterimageMod.MOD_ID, "shaders/post/afterimage.json");
-    private static final ResourceLocation BUMPY_EFFECT =
-            ResourceLocation.fromNamespaceAndPath(AfterimageMod.MOD_ID, "shaders/post/bumpy.json");
     private static final double PALE_MIMIC_NOISE_RANGE = 20.0D;
     private static final double PALE_MIMIC_HEARTBEAT_RANGE = 32.0D;
     private static final int PALE_MIMIC_HEARTBEAT_FAR_TICKS = 35;
@@ -180,11 +178,10 @@ public class AfterimageClient {
     }
 
     private static void updateEffectState() {
-        boolean needsAfterimage = clientInAfterimage || paleMimicNoiseIntensity > 0.0F || isPaleMimicCaptureActive() || isRadioStaticActive();
-        if (needsAfterimage) {
+        boolean needsEffect = clientInAfterimage || clientInPaleMimicPlain
+                || paleMimicNoiseIntensity > 0.0F || isPaleMimicCaptureActive() || isRadioStaticActive();
+        if (needsEffect) {
             PostProcessEffectUtil.load(EFFECT);
-        } else if (clientInPaleMimicPlain) {
-            PostProcessEffectUtil.load(BUMPY_EFFECT);
         } else {
             PostProcessEffectUtil.disable();
         }
@@ -198,8 +195,20 @@ public class AfterimageClient {
 
     private static void applyEffectUniforms() {
         PostProcessEffectUtil.applyToPasses(EFFECT, pass -> {
+            // 後處理鏈中的每個 pass 只宣告自己用到的 uniform，
+            // safeGetUniform 對沒有該 uniform 的 pass 會回傳無作用的 dummy，
+            // 因此這裡逐一設定即可，數值會各自落到對應的效果 pass 上。
+            // 兩個維度的效果互斥：pale_mimic_plain 只顯示 bumpy，afterimage 只顯示灰階
+            // 加上顯式 !other 條件，避免狀態切換過程中兩者同時為 true 導致效果疊加
+            AbstractUniform bumpyAmount = pass.getEffect().safeGetUniform("BumpyAmount");
+            bumpyAmount.set(clientInPaleMimicPlain && !clientInAfterimage ? 1.0F : 0.0F);
+
             AbstractUniform grayAmount = pass.getEffect().safeGetUniform("GrayAmount");
-            grayAmount.set(clientInAfterimage ? 1.0F : 0.0F);
+            grayAmount.set(clientInAfterimage && !clientInPaleMimicPlain ? 1.0F : 0.0F);
+
+            // 暗角跟著灰階走，條件與 GrayAmount 相同
+            AbstractUniform vignetteAmount = pass.getEffect().safeGetUniform("VignetteAmount");
+            vignetteAmount.set(clientInAfterimage && !clientInPaleMimicPlain ? 1.0F : 0.0F);
 
             AbstractUniform time = pass.getEffect().safeGetUniform("Time");
             time.set(getShaderTime());

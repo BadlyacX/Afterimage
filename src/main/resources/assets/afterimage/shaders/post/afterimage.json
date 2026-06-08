@@ -1,16 +1,42 @@
 {
   "targets": [
-    "swap"
+    "swap",
+    "swap2"
   ],
   "passes": [
     {
-      "name": "afterimage:afterimage",
+      "name": "afterimage:bumpy",
       "intarget": "minecraft:main",
       "outtarget": "swap"
     },
     {
-      "name": "minecraft:blit",
+      "name": "afterimage:screen_roll",
       "intarget": "swap",
+      "outtarget": "swap2"
+    },
+    {
+      "name": "afterimage:grayscale",
+      "intarget": "swap2",
+      "outtarget": "swap"
+    },
+    {
+      "name": "afterimage:vignette",
+      "intarget": "swap",
+      "outtarget": "swap2"
+    },
+    {
+      "name": "afterimage:noise",
+      "intarget": "swap2",
+      "outtarget": "swap"
+    },
+    {
+      "name": "afterimage:blackout",
+      "intarget": "swap",
+      "outtarget": "swap2"
+    },
+    {
+      "name": "minecraft:blit",
+      "intarget": "swap2",
       "outtarget": "minecraft:main"
     }
   ]

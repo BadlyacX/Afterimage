@@ -4,8 +4,8 @@
     "srcrgb": "one",
     "dstrgb": "zero"
   },
-  "vertex": "bumpy",
-  "fragment": "bumpy",
+  "vertex": "blit",
+  "fragment": "afterimage:bumpy",
   "attributes": [
     "Position"
   ],
@@ -54,6 +54,14 @@
       "values": [
         1.0,
         1.0
+      ]
+    },
+    {
+      "name": "BumpyAmount",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
       ]
     }
   ]
