@@ -1,6 +1,7 @@
 package com.badlyac.afterimage.monster.palemimic;
 
 import com.badlyac.afterimage.network.PaleMimicCapturePacket;
+import com.badlyac.afterimage.registry.ModDimensions;
 import com.badlyac.afterimage.registry.ModSounds;
 import com.badlyac.afterimage.util.Clock;
 import com.badlyac.afterimage.util.AfterimageTeleportUtil;
@@ -31,10 +32,8 @@ public class MimicReactionGoal extends Goal {
     private static final int CAPTURE_ROLL_TICKS = 2;
     private static final int CAPTURE_POST_ROLL_WAIT_TICKS = 6;
     private static final int CAPTURE_SOUND_TICK = CAPTURE_LOOK_TICKS;
-    private static final int CAPTURE_BLACKOUT_TICK =
-            CAPTURE_SOUND_TICK + CAPTURE_ROLL_TICKS + CAPTURE_POST_ROLL_WAIT_TICKS;
-    private static final int CAPTURE_TELEPORT_FALLBACK_TICK =
-            CAPTURE_BLACKOUT_TICK + (int) Clock.SEC * 3;
+    private static final int CAPTURE_BLACKOUT_TICK = CAPTURE_SOUND_TICK + CAPTURE_ROLL_TICKS + CAPTURE_POST_ROLL_WAIT_TICKS;
+    private static final int CAPTURE_TELEPORT_FALLBACK_TICK = CAPTURE_BLACKOUT_TICK + (int) Clock.SEC * 3;
     private static final Map<UUID, MimicReactionGoal> ACTIVE_CAPTURES = new HashMap<>();
 
     private final PaleMimicEntity mimic;
@@ -179,7 +178,8 @@ public class MimicReactionGoal extends Goal {
         stopWarning();
         mimic.setTriggered(true);
 
-        if (mimic.getRandom().nextFloat() < 0.7F) {
+        boolean inAfterimageLevel = mimic.level().dimension().equals(ModDimensions.AFTERIMAGE_LEVEL);
+        if (inAfterimageLevel && mimic.getRandom().nextFloat() < 0.7F) {
             disappear();
         } else {
             startAggressive();

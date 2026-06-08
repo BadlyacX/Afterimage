@@ -26,8 +26,8 @@ public class AfterimageMod {
 
         AfterimageNetwork.register();
 
-        ModFeatures.FEATURES.register(bus);
         ModPlacementTypes.PLACEMENT_MODIFIERS.register(bus);
+        ModFeatures.FEATURES.register(bus);
         ModItems.ITEMS.register(bus);
         ModCreativeTabs.TABS.register(bus);
         ModSounds.SOUND_EVENTS.register(bus);
