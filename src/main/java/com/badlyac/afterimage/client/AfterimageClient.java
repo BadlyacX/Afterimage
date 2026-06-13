@@ -203,6 +203,9 @@ public class AfterimageClient {
             AbstractUniform bumpyAmount = pass.getEffect().safeGetUniform("BumpyAmount");
             bumpyAmount.set(clientInPaleMimicPlain && !clientInAfterimage ? 1.0F : 0.0F);
 
+            AbstractUniform fogAmount = pass.getEffect().safeGetUniform("FogAmount");
+            fogAmount.set(clientInPaleMimicPlain && !clientInAfterimage ? 1.0F : 0.0F);
+
             AbstractUniform grayAmount = pass.getEffect().safeGetUniform("GrayAmount");
             grayAmount.set(clientInAfterimage && !clientInPaleMimicPlain ? 1.0F : 0.0F);
 

@@ -15,4 +15,9 @@ public class ModDimensions {
             ResourceKey.create(Registries.DIMENSION,
                     ResourceLocation.fromNamespaceAndPath("afterimage", "pale_mimic_plain"));
 
+    // 佔位用，待新維度製作完成後改成正式名稱
+    public static final ResourceKey<Level> NEW_DIMENSION_LEVEL =
+            ResourceKey.create(Registries.DIMENSION,
+                    ResourceLocation.fromNamespaceAndPath("afterimage", "new_dimension"));
+
 }

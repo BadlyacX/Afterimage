@@ -10,33 +10,38 @@
       "outtarget": "swap"
     },
     {
-      "name": "afterimage:screen_roll",
+      "name": "afterimage:fog",
       "intarget": "swap",
       "outtarget": "swap2"
+    },
+    {
+      "name": "afterimage:screen_roll",
+      "intarget": "swap2",
+      "outtarget": "swap"
     },
     {
       "name": "afterimage:grayscale",
-      "intarget": "swap2",
-      "outtarget": "swap"
+      "intarget": "swap",
+      "outtarget": "swap2"
     },
     {
       "name": "afterimage:vignette",
-      "intarget": "swap",
-      "outtarget": "swap2"
-    },
-    {
-      "name": "afterimage:noise",
       "intarget": "swap2",
       "outtarget": "swap"
     },
     {
-      "name": "afterimage:blackout",
+      "name": "afterimage:noise",
       "intarget": "swap",
       "outtarget": "swap2"
     },
     {
-      "name": "minecraft:blit",
+      "name": "afterimage:blackout",
       "intarget": "swap2",
+      "outtarget": "swap"
+    },
+    {
+      "name": "minecraft:blit",
+      "intarget": "swap",
       "outtarget": "minecraft:main"
     }
   ]
