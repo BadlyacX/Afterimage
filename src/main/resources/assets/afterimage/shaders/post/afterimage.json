@@ -5,12 +5,12 @@
   ],
   "passes": [
     {
-      "name": "afterimage:bumpy",
+      "name": "afterimage:fog",
       "intarget": "minecraft:main",
       "outtarget": "swap"
     },
     {
-      "name": "afterimage:fog",
+      "name": "afterimage:bumpy",
       "intarget": "swap",
       "outtarget": "swap2"
     },

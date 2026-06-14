@@ -3,9 +3,10 @@ package com.badlyac.afterimage.client;
 import com.badlyac.afterimage.AfterimageMod;
 import com.badlyac.afterimage.registry.ModDimensions;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.client.event.RenderGuiEvent;
-import net.minecraftforge.client.event.MovementInputUpdateEvent;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.MovementInputUpdateEvent;
+import net.minecraftforge.client.event.ViewportEvent;
+import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -37,5 +38,28 @@ public class AfterimageClientEvent {
     @SubscribeEvent
     public static void onRenderGui(RenderGuiEvent.Post event) {
         AfterimageClient.renderPaleMimicHud(event.getGuiGraphics(), event.getPartialTick());
+    }
+
+    @SubscribeEvent
+    public static void onComputeFogColor(ViewportEvent.ComputeFogColor event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null || mc.level.dimension() != ModDimensions.PALE_MIMIC_PLAIN_LEVEL) return;
+
+        // 淡灰色迷霧，對應 pale_plains 生態系 fog_color（0xCCCCCC）
+        event.setRed(0.8F);
+        event.setGreen(0.8F);
+        event.setBlue(0.8F);
+    }
+
+    @SubscribeEvent
+    public static void onRenderFog(ViewportEvent.RenderFog event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null || mc.level.dimension() != ModDimensions.PALE_MIMIC_PLAIN_LEVEL) return;
+
+        // 近平面設很近，製造迷霧從腳邊就開始的效果
+        // 遠平面限制能見度，不讓玩家看太遠
+        event.setNearPlaneDistance(2.0F);
+        event.setFarPlaneDistance(48.0F);
+        event.setCanceled(true);
     }
 }
