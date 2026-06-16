@@ -1,6 +1,7 @@
 package com.badlyac.afterimage.util;
 
 import com.badlyac.afterimage.dimension.palemimic.PaleMimicPlainWorldSetup;
+import com.badlyac.afterimage.dimension.tornexpanse.TornExpanseWorldSetup;
 import com.badlyac.afterimage.registry.ModDimensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -67,6 +68,11 @@ public final class AfterimageTeleportUtil {
             ServerLevel end = server.getLevel(Level.END);
             if (end == null) return;
             teleportSafe(player, end, new BlockPos(100, 49, 0));
+        } else if (destination == ModDimensions.TORN_EXPANSE_LEVEL) {
+            ServerLevel tornExpanse = server.getLevel(ModDimensions.TORN_EXPANSE_LEVEL);
+            if (tornExpanse == null) return;
+            TornExpanseWorldSetup.applyTo(tornExpanse);
+            teleportSafe(player, tornExpanse, TornExpanseWorldSetup.SPAWN);
         } else {
             ServerLevel target = server.getLevel(destination);
             if (target == null) return;

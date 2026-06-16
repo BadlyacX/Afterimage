@@ -45,7 +45,6 @@ public class AfterimageClientEvent {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.level.dimension() != ModDimensions.PALE_MIMIC_PLAIN_LEVEL) return;
 
-        // 淡灰色迷霧，對應 pale_plains 生態系 fog_color（0xCCCCCC）
         event.setRed(0.8F);
         event.setGreen(0.8F);
         event.setBlue(0.8F);
@@ -56,8 +55,6 @@ public class AfterimageClientEvent {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.level.dimension() != ModDimensions.PALE_MIMIC_PLAIN_LEVEL) return;
 
-        // 近平面設很近，製造迷霧從腳邊就開始的效果
-        // 遠平面限制能見度，不讓玩家看太遠
         event.setNearPlaneDistance(2.0F);
         event.setFarPlaneDistance(48.0F);
         event.setCanceled(true);

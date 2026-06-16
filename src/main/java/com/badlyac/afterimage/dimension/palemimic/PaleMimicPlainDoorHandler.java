@@ -40,13 +40,17 @@ public final class PaleMimicPlainDoorHandler {
             Level.NETHER,
             Level.OVERWORLD,
             Level.END,
-            ModDimensions.NEW_DIMENSION_LEVEL
+            ModDimensions.TORN_EXPANSE_LEVEL
     );
 
     private static final Map<BlockPos, ResourceKey<Level>> DOOR_DESTINATIONS = new HashMap<>();
 
     static {
         reassignDoors();
+    }
+
+    public static Map<BlockPos, ResourceKey<Level>> getDoorDestinations() {
+        return Collections.unmodifiableMap(DOOR_DESTINATIONS);
     }
 
     private static void reassignDoors() {

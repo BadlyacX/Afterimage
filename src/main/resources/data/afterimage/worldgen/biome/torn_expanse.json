@@ -1,0 +1,40 @@
+{
+  "has_precipitation": false,
+  "temperature": 0.5,
+  "downfall": 0.0,
+  "step_sound": "minecraft:stone",
+  "effects": {
+    "sky_color": 526344,
+    "fog_color": 4932696,
+    "water_color": 3816016,
+    "water_fog_color": 2236962,
+    "grass_color": 6373474,
+    "foliage_color": 6373474,
+    "ambient_loop_sound": "minecraft:ambient.cave"
+  },
+  "spawners": {
+    "monster": [
+      {
+        "type": "minecraft:enderman",
+        "weight": 100,
+        "minCount": 1,
+        "maxCount": 2
+      }
+    ]
+  },
+  "spawn_costs": {},
+  "carvers": {},
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "type": "afterimage:torn_expanse",
+  "generator": {
+    "type": "minecraft:noise",
+    "settings": "minecraft:end",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "afterimage:torn_expanse"
+    }
+  }
+}
