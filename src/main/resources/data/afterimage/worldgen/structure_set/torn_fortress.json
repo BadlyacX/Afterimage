@@ -1,0 +1,11 @@
+{
+  "structures": [
+    {"structure": "afterimage:fortress", "weight": 1}
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 27,
+    "separation": 4,
+    "salt": 87412983
+  }
+}

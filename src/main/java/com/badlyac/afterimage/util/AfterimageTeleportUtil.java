@@ -72,7 +72,7 @@ public final class AfterimageTeleportUtil {
             ServerLevel tornExpanse = server.getLevel(ModDimensions.TORN_EXPANSE_LEVEL);
             if (tornExpanse == null) return;
             TornExpanseWorldSetup.applyTo(tornExpanse);
-            teleportSafe(player, tornExpanse, TornExpanseWorldSetup.SPAWN);
+            teleportSafe(player, tornExpanse, tornExpanse.getSharedSpawnPos());
         } else {
             ServerLevel target = server.getLevel(destination);
             if (target == null) return;
