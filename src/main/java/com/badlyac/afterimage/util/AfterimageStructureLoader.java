@@ -17,7 +17,7 @@ import java.util.Optional;
 
 public final class AfterimageStructureLoader {
 
-    private static final String RESOURCE_BASE = "/assets/afterimage/structure/";
+    private static final String RESOURCE_BASE = "/assets/afterimage/schematic/";
     private static final Map<String, StructureTemplate> CACHE = new HashMap<>();
 
     /**
