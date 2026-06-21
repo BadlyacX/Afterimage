@@ -1,7 +1,7 @@
 package com.badlyac.afterimage.teleporter;
 
 import com.badlyac.afterimage.network.AfterimageStateSyncPacket;
-import com.badlyac.afterimage.registry.ModDimensions;
+import com.badlyac.afterimage.registry.registries.ModDimensions;
 import com.badlyac.afterimage.state.AfterimageState;
 import com.badlyac.afterimage.util.AfterimageParticleUtil;
 import com.badlyac.afterimage.util.AfterimageTeleportUtil;

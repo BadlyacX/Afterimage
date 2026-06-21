@@ -1,6 +1,6 @@
 package com.badlyac.afterimage.data.levelgen.placement;
 
-import com.badlyac.afterimage.registry.ModPlacementTypes;
+import com.badlyac.afterimage.registry.registries.ModPlacementTypes;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;

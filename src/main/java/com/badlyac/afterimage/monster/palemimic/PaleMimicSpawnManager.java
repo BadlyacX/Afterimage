@@ -1,8 +1,8 @@
 package com.badlyac.afterimage.monster.palemimic;
 
 import com.badlyac.afterimage.AfterimageMod;
-import com.badlyac.afterimage.registry.ModDimensions;
-import com.badlyac.afterimage.registry.ModEntities;
+import com.badlyac.afterimage.registry.registries.ModDimensions;
+import com.badlyac.afterimage.registry.registries.ModEntities;
 import com.badlyac.afterimage.state.AfterimageState;
 import com.badlyac.afterimage.util.Clock;
 import net.minecraft.core.BlockPos;

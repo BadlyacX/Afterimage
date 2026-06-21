@@ -1,8 +1,9 @@
 package com.badlyac.afterimage.util;
 
+import com.badlyac.afterimage.dimension.nostalgia.NostalgiaWorldSetup;
 import com.badlyac.afterimage.dimension.palemimic.PaleMimicPlainWorldSetup;
 import com.badlyac.afterimage.dimension.tornexpanse.TornExpanseWorldSetup;
-import com.badlyac.afterimage.registry.ModDimensions;
+import com.badlyac.afterimage.registry.registries.ModDimensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
@@ -73,6 +74,14 @@ public final class AfterimageTeleportUtil {
             if (tornExpanse == null) return;
             TornExpanseWorldSetup.applyTo(tornExpanse);
             teleportSafe(player, tornExpanse, tornExpanse.getSharedSpawnPos());
+        } else if (destination == ModDimensions.NOSTALGIA_LEVEL) {
+            ServerLevel nostalgia = server.getLevel(ModDimensions.NOSTALGIA_LEVEL);
+            if (nostalgia == null) return;
+            NostalgiaWorldSetup.applyTo(nostalgia);
+            BlockPos spawn = nostalgia.getSharedSpawnPos();
+            player.teleportTo(nostalgia, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5,
+                    player.getYRot(), player.getXRot());
+            player.resetFallDistance();
         } else {
             ServerLevel target = server.getLevel(destination);
             if (target == null) return;

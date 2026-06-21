@@ -1,7 +1,7 @@
 package com.badlyac.afterimage.teleporter;
 
 import com.badlyac.afterimage.AfterimageMod;
-import com.badlyac.afterimage.registry.ModSounds;
+import com.badlyac.afterimage.registry.registries.ModSounds;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;

@@ -1,7 +1,7 @@
 package com.badlyac.afterimage.dimension.afterimage;
 
 import com.badlyac.afterimage.AfterimageMod;
-import com.badlyac.afterimage.registry.ModDimensions;
+import com.badlyac.afterimage.registry.registries.ModDimensions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;

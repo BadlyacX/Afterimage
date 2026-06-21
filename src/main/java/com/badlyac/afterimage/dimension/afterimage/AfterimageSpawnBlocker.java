@@ -1,8 +1,8 @@
 package com.badlyac.afterimage.dimension.afterimage;
 
 import com.badlyac.afterimage.AfterimageMod;
-import com.badlyac.afterimage.registry.ModDimensions;
-import com.badlyac.afterimage.registry.ModEntities;
+import com.badlyac.afterimage.registry.registries.ModDimensions;
+import com.badlyac.afterimage.registry.registries.ModEntities;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;

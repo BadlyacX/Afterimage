@@ -1,10 +1,7 @@
 package com.badlyac.afterimage.dimension.palemimic;
 
 import com.badlyac.afterimage.AfterimageMod;
-import com.badlyac.afterimage.network.AfterimageStateSyncPacket;
-import com.badlyac.afterimage.registry.ModDimensions;
-import com.badlyac.afterimage.state.AfterimageState;
-import com.badlyac.afterimage.util.AfterimageTeleportUtil;
+import com.badlyac.afterimage.registry.registries.ModDimensions;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;

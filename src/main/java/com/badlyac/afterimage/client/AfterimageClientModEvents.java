@@ -2,7 +2,7 @@ package com.badlyac.afterimage.client;
 
 import com.badlyac.afterimage.AfterimageMod;
 import com.badlyac.afterimage.monster.palemimic.PaleMimicRenderer;
-import com.badlyac.afterimage.registry.ModEntities;
+import com.badlyac.afterimage.registry.registries.ModEntities;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;

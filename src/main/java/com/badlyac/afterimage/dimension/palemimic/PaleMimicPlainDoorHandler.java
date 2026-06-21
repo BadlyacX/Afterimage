@@ -1,7 +1,7 @@
 package com.badlyac.afterimage.dimension.palemimic;
 
 import com.badlyac.afterimage.AfterimageMod;
-import com.badlyac.afterimage.registry.ModDimensions;
+import com.badlyac.afterimage.registry.registries.ModDimensions;
 import com.badlyac.afterimage.util.AfterimageTeleportUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;

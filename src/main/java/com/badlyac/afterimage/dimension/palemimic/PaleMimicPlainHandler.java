@@ -9,7 +9,7 @@ import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import static com.badlyac.afterimage.registry.ModDimensions.PALE_MIMIC_PLAIN_LEVEL;
+import static com.badlyac.afterimage.registry.registries.ModDimensions.PALE_MIMIC_PLAIN_LEVEL;
 
 @Mod.EventBusSubscriber(modid = AfterimageMod.MOD_ID)
 public final class PaleMimicPlainHandler {

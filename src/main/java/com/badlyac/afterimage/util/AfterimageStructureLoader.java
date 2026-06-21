@@ -17,21 +17,17 @@ import java.util.Optional;
 
 public final class AfterimageStructureLoader {
 
-    private static final String RESOURCE_BASE = "/assets/afterimage/schematic/";
+    private static final String RESOURCE_BASE = "assets/afterimage/schematic/";
     private static final Map<String, StructureTemplate> CACHE = new HashMap<>();
 
-    /**
-     * 從 assets/afterimage/structure/<name>.nbt 載入結構模板。
-     * 結果會被快取，相同 name 的後續呼叫直接回傳快取副本。
-     */
     public static Optional<StructureTemplate> load(ServerLevel level, String name) {
         StructureTemplate cached = CACHE.get(name);
         if (cached != null) return Optional.of(cached);
 
         String path = RESOURCE_BASE + name + ".nbt";
-        try (InputStream stream = AfterimageStructureLoader.class.getResourceAsStream(path)) {
+        try (InputStream stream = AfterimageStructureLoader.class.getClassLoader().getResourceAsStream(path)) {
             if (stream == null) {
-                System.err.println("[Afterimage] Structure not found: " + path);
+                System.err.println("[Afterimage] Structure not found in classpath: " + path);
                 return Optional.empty();
             }
             CompoundTag tag = NbtIo.readCompressed(stream);

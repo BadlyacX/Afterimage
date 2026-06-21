@@ -1,4 +1,4 @@
-package com.badlyac.afterimage.registry;
+package com.badlyac.afterimage.registry.registries;
 
 import com.badlyac.afterimage.AfterimageMod;
 import com.badlyac.afterimage.data.levelgen.placement.GridPlacement;

@@ -1,8 +1,8 @@
 package com.badlyac.afterimage.monster.palemimic;
 
 import com.badlyac.afterimage.network.PaleMimicCapturePacket;
-import com.badlyac.afterimage.registry.ModDimensions;
-import com.badlyac.afterimage.registry.ModSounds;
+import com.badlyac.afterimage.registry.registries.ModDimensions;
+import com.badlyac.afterimage.registry.registries.ModSounds;
 import com.badlyac.afterimage.util.Clock;
 import com.badlyac.afterimage.util.AfterimageTeleportUtil;
 import net.minecraft.core.particles.ParticleTypes;

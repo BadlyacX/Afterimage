@@ -2,7 +2,7 @@ package com.badlyac.afterimage.dimension.afterimage;
 
 import com.badlyac.afterimage.AfterimageMod;
 import com.badlyac.afterimage.network.AfterimageStateSyncPacket;
-import com.badlyac.afterimage.registry.ModDimensions;
+import com.badlyac.afterimage.registry.registries.ModDimensions;
 import com.badlyac.afterimage.state.AfterimageState;
 import com.badlyac.afterimage.util.AfterimageTeleportUtil;
 import net.minecraft.server.level.ServerPlayer;

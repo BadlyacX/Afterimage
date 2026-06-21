@@ -2,6 +2,7 @@ package com.badlyac.afterimage.data.worldgen;
 
 import com.badlyac.afterimage.AfterimageMod;
 import com.badlyac.afterimage.data.levelgen.placement.GridPlacement;
+import com.badlyac.afterimage.registry.registries.ModFeatures;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
@@ -51,7 +52,7 @@ public class BirchPlacement {
 
     public static void bootstrapConfigured(BootstapContext<ConfiguredFeature<?, ?>> context) {
         context.register(FIXED_BIRCH_CONFIG_KEY, new ConfiguredFeature<>(
-                com.badlyac.afterimage.registry.ModFeatures.FIXED_BIRCH.get(),
+                ModFeatures.FIXED_BIRCH.get(),
                 NoneFeatureConfiguration.INSTANCE
         ));
     }

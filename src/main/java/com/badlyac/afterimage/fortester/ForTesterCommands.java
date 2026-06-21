@@ -2,7 +2,7 @@ package com.badlyac.afterimage.fortester;
 
 import com.badlyac.afterimage.AfterimageMod;
 import com.badlyac.afterimage.dimension.palemimic.PaleMimicPlainDoorHandler;
-import com.badlyac.afterimage.registry.ModDimensions;
+import com.badlyac.afterimage.registry.registries.ModDimensions;
 import com.badlyac.afterimage.util.AfterimageTeleportUtil;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
@@ -34,6 +34,10 @@ public final class ForTesterCommands {
                 .requires(source -> source.hasPermission(2))
                 .executes(ForTesterCommands::enterTornExpanse));
 
+        dispatcher.register(Commands.literal("enterNostalgia")
+                .requires(source -> source.hasPermission(2))
+                .executes(ForTesterCommands::enterNostalgia));
+
         dispatcher.register(Commands.literal("getEachDoor")
                 .requires(source -> source.hasPermission(2))
                 .executes(ForTesterCommands::getEachDoor));
@@ -50,6 +54,20 @@ public final class ForTesterCommands {
 
         AfterimageTeleportUtil.teleportThroughDoor(player, ModDimensions.TORN_EXPANSE_LEVEL);
         context.getSource().sendSuccess(() -> Component.literal("[ForTester] You have been teleported to torn_expanse。"), false);
+        return 1;
+    }
+
+    private static int enterNostalgia(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player;
+        try {
+            player = context.getSource().getPlayerOrException();
+        } catch (Exception e) {
+            context.getSource().sendFailure(Component.literal("[ForTester] This command should be executed by player!"));
+            return 0;
+        }
+
+        AfterimageTeleportUtil.teleportThroughDoor(player, ModDimensions.NOSTALGIA_LEVEL);
+        context.getSource().sendSuccess(() -> Component.literal("[ForTester] You have been teleported to nostalgia."), false);
         return 1;
     }
 

@@ -1,7 +1,7 @@
 package com.badlyac.afterimage.item;
 
 import com.badlyac.afterimage.teleporter.AfterimageTravelHandler;
-import com.badlyac.afterimage.registry.ModDimensions;
+import com.badlyac.afterimage.registry.registries.ModDimensions;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
