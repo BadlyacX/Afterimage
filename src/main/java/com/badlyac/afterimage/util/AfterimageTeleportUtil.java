@@ -77,7 +77,7 @@ public final class AfterimageTeleportUtil {
         } else if (destination == ModDimensions.NOSTALGIA_LEVEL) {
             ServerLevel nostalgia = server.getLevel(ModDimensions.NOSTALGIA_LEVEL);
             if (nostalgia == null) return;
-            NostalgiaWorldSetup.applyTo(nostalgia, player.blockPosition());
+            NostalgiaWorldSetup.applyTo(nostalgia);
             BlockPos spawn = nostalgia.getSharedSpawnPos();
             player.teleportTo(nostalgia, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5,
                     player.getYRot(), player.getXRot());

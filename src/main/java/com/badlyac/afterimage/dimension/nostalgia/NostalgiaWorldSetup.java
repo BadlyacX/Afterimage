@@ -17,34 +17,26 @@ public final class NostalgiaWorldSetup {
 
     private static final BlockPos HOUSE_RELATIVE_SPAWN = new BlockPos(4, 2, 4);
     private static boolean structurePlaced = false;
-    private static BlockPos cachedSpawnPos = null;
 
     @SubscribeEvent
     public static void onChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getTo() != ModDimensions.NOSTALGIA_LEVEL) return;
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        ServerLevel level = player.serverLevel();
-        applyTo(level, player.blockPosition());
-        BlockPos spawn = level.getSharedSpawnPos();
-        player.teleportTo(spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5);
-        player.resetFallDistance();
+        applyTo(player.serverLevel());
     }
 
-    public static void applyTo(ServerLevel level, BlockPos playerPos) {
-        if (!structurePlaced) {
-            int houseX = playerPos.getX() - HOUSE_RELATIVE_SPAWN.getX();
-            int houseZ = playerPos.getZ() - HOUSE_RELATIVE_SPAWN.getZ();
-            int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, houseX, houseZ);
-            BlockPos structureOrigin = new BlockPos(houseX, surfaceY, houseZ);
-            cachedSpawnPos = structureOrigin.offset(HOUSE_RELATIVE_SPAWN);
+    public static void applyTo(ServerLevel level) {
+        BlockPos dimensionSpawn = level.getSharedSpawnPos();
+        int groundY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, dimensionSpawn.getX(), dimensionSpawn.getZ());
+        // groundY 是地面最高實體方塊上方的第一格空氣，-1 讓結構 Y=0 層與地表齊平
+        BlockPos structureOrigin = new BlockPos(dimensionSpawn.getX(), groundY - 1, dimensionSpawn.getZ());
 
+        if (!structurePlaced) {
             AfterimageStructureLoader.replace(
                     level, structureOrigin, "nostalgic_house", new StructurePlaceSettings());
             structurePlaced = true;
         }
 
-        if (cachedSpawnPos != null) {
-            level.setDefaultSpawnPos(cachedSpawnPos, 0F);
-        }
+        level.setDefaultSpawnPos(structureOrigin.offset(HOUSE_RELATIVE_SPAWN), 0F);
     }
 }
