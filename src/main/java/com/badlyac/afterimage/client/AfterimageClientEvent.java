@@ -4,6 +4,7 @@ import com.badlyac.afterimage.AfterimageMod;
 import com.badlyac.afterimage.registry.registries.ModDimensions;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.MovementInputUpdateEvent;
 import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.client.event.RenderGuiEvent;
@@ -31,6 +32,11 @@ public class AfterimageClientEvent {
         NostalgiaPackSwitcher.sync(
                 mc.level != null && mc.level.dimension() == ModDimensions.NOSTALGIA_LEVEL
         );
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLogout(ClientPlayerNetworkEvent.LoggingOut event) {
+        NostalgiaPackSwitcher.sync(false);
     }
 
     @SubscribeEvent
